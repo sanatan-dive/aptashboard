@@ -1,103 +1,147 @@
-import Image from "next/image";
+'use client';
+import { useState } from 'react';
+import { useWallet } from '@aptos-labs/wallet-adapter-react';
+import axios from 'axios';
+import { motion } from 'framer-motion';
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const { connect, disconnect, account, wallets } = useWallet();
+  const [recipient, setRecipient] = useState('');
+  const [amount, setAmount] = useState('');
+  const [token, setToken] = useState('USDC');
+  const [txStatus, setTxStatus] = useState('');
+  const [feePrediction, setFeePrediction] = useState('');
+  const [isFraud, setIsFraud] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleConnect = async () => {
+    if (wallets.length === 0) {
+      setTxStatus('No wallets available');
+      return;
+    }
+    try {
+      await connect(wallets[0].name); // Connect to Petra Wallet
+    } catch (error) {
+      setTxStatus('Wallet connection failed');
+    }
+  };
+
+  const handleTransfer = async () => {
+    try {
+      // Convert address object to hex string if needed
+      let senderAddress = account?.address;
+      if (typeof senderAddress === 'object' && senderAddress.data && Array.isArray(senderAddress.data)) {
+        senderAddress = '0x' + senderAddress.data.map((byte: number) => byte.toString(16).padStart(2, '0')).join('');
+      }
+
+      const response = await axios.post('/api/transfer', {
+        senderAddress,
+        recipientAddress: recipient,
+        amount: parseFloat(amount),
+        token,
+      });
+      setTxStatus(`Transaction successful: ${response.data.txId}`);
+      
+      // Check for fraud
+      const fraudResponse = await axios.get('/api/predict', {
+        params: { type: 'fraud', data: JSON.stringify([0.01, 500, 600]) },
+      });
+      setIsFraud(fraudResponse.data.isSuspicious);
+    } catch (error) {
+      setTxStatus('Transaction failed');
+    }
+  };
+
+  const fetchFeePrediction = async () => {
+    try {
+      const response = await axios.get('/api/predict', {
+        params: { type: 'fee', data: JSON.stringify([0.01, 500, 600]) },
+      });
+      setFeePrediction(`Optimal fee: $${response.data.optimalFee.toFixed(4)}`);
+    } catch (error) {
+      setFeePrediction('Prediction failed');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
+      <motion.div
+        className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h1 className="text-2xl font-bold mb-4 text-center">Aptos Remittance Dashboard</h1>
+        
+        {/* Wallet Connection */}
+        <div className="mb-4">
+          {account ? (
+            <div>
+              <p className="text-green-600">Connected: {typeof account.address === 'string' ? account.address : '0x...'}</p>
+              <button
+                className="mt-2 w-full bg-red-500 text-white p-2 rounded hover:bg-red-600"
+                onClick={disconnect}
+              >
+                Disconnect
+              </button>
+            </div>
+          ) : (
+            <button
+              className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+              onClick={handleConnect}
+            >
+              Connect Wallet
+            </button>
+          )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        
+        {/* Transfer Form */}
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Recipient Address"
+            className="w-full p-2 mb-2 border rounded"
+            value={recipient}
+            onChange={(e) => setRecipient(e.target.value)}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
+          <input
+            type="number"
+            placeholder="Amount"
+            className="w-full p-2 mb-2 border rounded"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
           />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <select
+            className="w-full p-2 mb-2 border rounded"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+          >
+            <option value="USDC">USDC</option>
+            <option value="USDT">USDT</option>
+          </select>
+          <button
+            className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600"
+            onClick={handleTransfer}
+            disabled={!account || !recipient || !amount}
+          >
+            Send
+          </button>
+        </div>
+        
+        {/* AI Insights */}
+        <div className="mb-4">
+          <button
+            className="w-full bg-purple-500 text-white p-2 rounded hover:bg-purple-600"
+            onClick={fetchFeePrediction}
+          >
+            Get Fee Prediction
+          </button>
+          <p className="mt-2">{feePrediction}</p>
+          {isFraud && <p className="text-red-600 mt-2">Warning: Suspicious transaction detected!</p>}
+        </div>
+        
+        {/* Transaction Status */}
+        {txStatus && <p className="text-center">{txStatus}</p>}
+      </motion.div>
     </div>
   );
 }

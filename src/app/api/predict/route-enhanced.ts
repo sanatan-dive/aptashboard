@@ -299,7 +299,7 @@ export async function POST(req: NextRequest) {
     // Log prediction request
     logger.info('Complex prediction request initiated', {
       requestId,
-      type: type as string,
+      type,
       hasOptions: !!options,
       rateLimitKey
     });
@@ -328,7 +328,7 @@ export async function POST(req: NextRequest) {
 
       logger.info('Complex prediction completed successfully', {
         requestId,
-        type: type as string,
+        type,
         duration,
         cached: response.cached
       });
@@ -337,7 +337,7 @@ export async function POST(req: NextRequest) {
 
     } catch (scriptError) {
       metrics.incrementCounter('predictions_completed', { type: type as string, status: 'failed' });
-      logger.error('Python script execution error', scriptError as Error, { requestId, type: type as string });
+      logger.error('Python script execution error', scriptError as Error, { requestId, type });
       
       throw new PredictionServiceError(
         'Prediction service temporarily unavailable',

@@ -2,31 +2,32 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, color } from 'framer-motion';
 import { 
-  ArrowUpDown, 
-  Clock, 
-  TrendingUp, 
-  DollarSign, 
-  Users,
-  UserCircle,
   Menu,
+  User,
   X,
   Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
+import { cn, formatAddress } from '@/lib/utils';
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
+import GlowButton from './ui/glow-button';
 
 const navigation = [
-  { name: 'Transfer', href: '/', icon: ArrowUpDown, description: 'Send funds' },
-  { name: 'History', href: '/history', icon: Clock, description: 'Transaction history' },
-  { name: 'AI Insights', href: '/insights', icon: TrendingUp, description: 'Market analytics' },
-  { name: 'Lending', href: '/lending', icon: DollarSign, description: 'P2P lending' },
-  { name: 'Social', href: '/social', icon: Users, description: 'Social trading' },
-  { name: 'Profile', href: '/profile', icon: UserCircle, description: 'User profile' },
+  { name: 'Transfer', href: '/',  description: 'Send funds' },
+  { name: 'History', href: '/history',  description: 'Transaction history' },
+  { name: 'AI Insights', href: '/insights',  description: 'Market analytics' },
+  { name: 'Lending', href: '/lending',  description: 'P2P lending' },
+  { name: 'Social', href: '/social',   description: 'Social trading' },
+  { name: 'Profile', href: '/profile',  description: 'User profile' },
 ];
+
+const variants = [{
+  name: "stone",
+  color: "bg-stone-900",
+}]
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -41,45 +42,49 @@ export default function Navigation() {
     }
   };
 
+  const selectedVariant = variants[0];
   return (
     <>
       {/* Desktop Navigation */}
-      <nav className="hidden lg:flex fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200">
-        <div className="flex items-center justify-between w-full max-w-7xl mx-auto px-6 py-4">
+      <nav className="hidden lg:flex fixed top-0 left-0 right-0 text-white bg-transparent backdrop-blur-md">
+        <div className="flex items-center justify-between w-full  mx-auto px-24 py-4">
+           <div
+        className="absolute -top-80  right-1/25 w-screen h-90 rounded-full bg-black opacity-20 blur-[100px] pointer-events-none"
+      />
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3 group">
             <div className="relative">
-              <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
-                <Zap className="w-5 h-5 text-white" />
-              </div>
+
+                <Zap className="w-10 h-10 text-white" />
+
             </div>
             <div>
-              <span className="text-2xl font-bold text-black">Aptash</span>
-              <div className="text-xs text-gray-500 -mt-1">DeFi Platform</div>
+              <span className="text-3xl font-medium ">Aptash.</span>
+           
             </div>
           </Link>
           
           {/* Navigation Links */}
           <div className="flex items-center space-x-2">
             {navigation.map((item) => {
-              const Icon = item.icon;
+             
               const isActive = pathname === item.href;
               
               return (
                 <Link key={item.name} href={item.href}>
-                  <Button
-                    variant={isActive ? "default" : "ghost"}
-                    size="sm"
+                  <div
+                   
+                    
                     className={cn(
-                      "flex items-center space-x-2 h-10 px-4 transition-all duration-200",
+                      "flex items-center space-x-2  px-4 transition-all duration-200",
                       isActive 
-                        ? "bg-black text-white shadow-lg" 
-                        : "hover:bg-gray-100 text-gray-700"
+                        ? " text-white " 
+                        : " hover:text-white  duration-300  text-stone-400"
                     )}
                   >
-                    <Icon className="w-4 h-4" />
-                    <span className="font-medium">{item.name}</span>
-                  </Button>
+                    
+                    <span className="font-medium text-sm">{item.name}</span>
+                  </div>
                 </Link>
               );
             })}
@@ -91,7 +96,7 @@ export default function Navigation() {
               <div className="flex items-center space-x-2">
                 <div className="px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-sm">
                   <span className="text-green-800 font-medium">
-                    {account.address.toString().slice(0, 6)}...{account.address.toString().slice(-4)}
+                    {formatAddress(account.address.toString())}
                   </span>
                 </div>
                 <Button variant="outline" size="sm" onClick={handleWalletAction}>
@@ -99,9 +104,12 @@ export default function Navigation() {
                 </Button>
               </div>
             ) : (
-              <Button onClick={handleWalletAction} className="bg-black text-white hover:bg-gray-800">
+              <GlowButton onClick={handleWalletAction} variant={selectedVariant.name}>
+              <button onClick={handleWalletAction} className="flex items-center m-1 text-sm font-medium text-white">
+                <User className="w-5 h-5 mr-2 inline-block" />
                 Connect Wallet
-              </Button>
+              </button>
+              </GlowButton>
             )}
           </div>
         </div>
@@ -145,7 +153,7 @@ export default function Navigation() {
             >
               <div className="py-2">
                 {navigation.map((item, index) => {
-                  const Icon = item.icon;
+                  
                   const isActive = pathname === item.href;
                   
                   return (
@@ -164,7 +172,7 @@ export default function Navigation() {
                           )}
                           onClick={() => setMobileMenuOpen(false)}
                         >
-                          <Icon className="w-4 h-4 mr-3" />
+                          
                           <div>
                             <div className="font-medium">{item.name}</div>
                             <div className="text-xs text-gray-500">{item.description}</div>
@@ -181,7 +189,7 @@ export default function Navigation() {
                     <div className="space-y-2">
                       <div className="text-sm text-gray-600">Connected:</div>
                       <div className="text-xs font-mono bg-gray-100 p-2 rounded">
-                        {account.address.toString().slice(0, 20)}...
+                        {formatAddress(account.address.toString(), 12)}
                       </div>
                       <Button 
                         variant="outline" 

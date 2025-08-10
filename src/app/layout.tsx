@@ -14,10 +14,15 @@ export default function RootLayout({
         <title>Aptash - DeFi Platform</title>
         <meta name="description" content="AI-powered DeFi platform on Aptos blockchain" />
       </head>
-      <body className="bg-white text-black min-h-screen antialiased">
+      <body className="bg-[#141412]  text-white min-h-screen antialiased"
+      style={{
+        scrollbarWidth: "none",
+      }}>
         <WalletProvider>
-          <Navigation />
-          <main className="container mx-auto px-4 py-6 max-w-7xl">
+          
+          <main className="bg-[#141412] " 
+          style={{ scrollbarWidth: "none" }}>
+            <Navigation />
             {children}
           </main>
         </WalletProvider>

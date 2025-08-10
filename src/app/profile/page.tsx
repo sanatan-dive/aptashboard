@@ -59,7 +59,7 @@ export default function Profile() {
       try {
         // Simulate loading user profile data
         const mockProfile: UserProfile = {
-          address: account?.address || '',
+          address: account?.address?.toString() || '',
           balance: 2450.75,
           totalVolume: 125000,
           totalTrades: 89,
@@ -121,7 +121,8 @@ export default function Profile() {
 
   const handleCopyAddress = () => {
     if (account?.address) {
-      copyToClipboard(account.address);
+      const addressString = account.address.toString();
+      copyToClipboard(addressString);
       setCopyStatus('Address copied to clipboard');
       setTimeout(() => setCopyStatus(''), 3000);
     }
@@ -229,7 +230,7 @@ export default function Profile() {
                   <h2 className="text-xl font-semibold">Wallet Address</h2>
                   <div className="flex items-center space-x-2">
                     <p className="text-gray-600 font-mono">
-                      {formatAddress(account.address, 12)}
+                      {formatAddress(account.address?.toString(), 12)}
                     </p>
                     <Button
                       variant="ghost"
@@ -241,7 +242,7 @@ export default function Profile() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => window.open(`https://explorer.aptoslabs.com/account/${account.address}`, '_blank')}
+                      onClick={() => window.open(`https://explorer.aptoslabs.com/account/${account.address?.toString()}`, '_blank')}
                     >
                       <ExternalLink className="h-4 w-4" />
                     </Button>

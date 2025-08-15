@@ -2,12 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion, AnimatePresence, color } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
+  ArrowUpDown, 
+  Clock, 
+  TrendingUp, 
+  DollarSign, 
+  Users,
+  UserCircle,
   Menu,
-  User,
   X,
-  Zap
+  Zap,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -16,18 +22,13 @@ import { useWallet } from '@aptos-labs/wallet-adapter-react';
 import GlowButton from './ui/glow-button';
 
 const navigation = [
-  { name: 'Transfer', href: '/',  description: 'Send funds' },
-  { name: 'History', href: '/history',  description: 'Transaction history' },
-  { name: 'AI Insights', href: '/insights',  description: 'Market analytics' },
-  { name: 'Lending', href: '/lending',  description: 'P2P lending' },
-  { name: 'Social', href: '/social',   description: 'Social trading' },
-  { name: 'Profile', href: '/profile',  description: 'User profile' },
+  { name: 'Transfer', href: '/', icon: ArrowUpDown, description: 'Send funds' },
+  { name: 'History', href: '/history', icon: Clock, description: 'Transaction history' },
+  { name: 'AI Insights', href: '/insights', icon: TrendingUp, description: 'Market analytics' },
+  { name: 'Lending', href: '/lending', icon: DollarSign, description: 'P2P lending' },
+  { name: 'Social', href: '/social', icon: Users, description: 'Social trading' },
+  { name: 'Profile', href: '/profile', icon: UserCircle, description: 'User profile' },
 ];
-
-const variants = [{
-  name: "stone",
-  color: "bg-stone-900",
-}]
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -42,101 +43,134 @@ export default function Navigation() {
     }
   };
 
-  const selectedVariant = variants[0];
   return (
     <>
       {/* Desktop Navigation */}
-      <nav className="hidden lg:flex fixed top-0 left-0 right-0 text-white bg-transparent backdrop-blur-md">
-        <div className="flex items-center justify-between w-full  mx-auto px-24 py-4">
-           <div
-        className="absolute -top-80  right-1/25 w-screen h-90 rounded-full bg-black opacity-20 blur-[100px] pointer-events-none"
-      />
+      <motion.nav 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="hidden lg:flex fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b border-stone-800/50"
+        style={{
+          background: 'rgba(0, 0, 0, 0.8)'
+        }}
+      >
+        <div className="flex items-center justify-between w-full max-w-7xl mx-auto px-6 py-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-3 group">
+          <motion.div 
+            whileHover={{ scale: 1.05 }}
+            className="flex items-center space-x-3"
+          >
             <div className="relative">
-
-                <Zap className="w-10 h-10 text-white" />
-
+              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-black" />
+              </div>
+              <div className="absolute -inset-1 bg-gradient-to-r from-white/20 to-transparent rounded-lg blur opacity-75"></div>
             </div>
-            <div>
-              <span className="text-3xl font-medium ">Aptash.</span>
-           
-            </div>
-          </Link>
-          
+            <span className="text-2xl font-bold bg-gradient-to-r from-white via-gray-300 to-white bg-clip-text text-transparent">
+              Aptash
+            </span>
+          </motion.div>
+
           {/* Navigation Links */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1">
             {navigation.map((item) => {
-             
               const isActive = pathname === item.href;
-              
               return (
                 <Link key={item.name} href={item.href}>
-                  <div
-                   
-                    
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     className={cn(
-                      "flex items-center space-x-2  px-4 transition-all duration-200",
+                      "relative px-4 py-2 rounded-lg transition-all duration-300 flex items-center space-x-2",
                       isActive 
-                        ? " text-white " 
-                        : " hover:text-white  duration-300  text-stone-400"
+                        ? "bg-white/10 text-white shadow-lg" 
+                        : "text-stone-400 hover:text-white hover:bg-white/5"
                     )}
                   >
-                    
-                    <span className="font-medium text-sm">{item.name}</span>
-                  </div>
+                    <item.icon className="w-4 h-4" />
+                    <span className="font-medium">{item.name}</span>
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeTab"
+                        className="absolute inset-0 bg-white/10 rounded-lg border border-white/20"
+                        initial={false}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                      />
+                    )}
+                  </motion.div>
                 </Link>
               );
             })}
           </div>
 
           {/* Wallet Connection */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
             {account ? (
-              <div className="flex items-center space-x-2">
-                <div className="px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-sm">
-                  <span className="text-green-800 font-medium">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex items-center space-x-3"
+              >
+                <div className="px-4 py-2 bg-gradient-to-r from-stone-800/50 to-stone-900/50 backdrop-blur border border-stone-700/50 rounded-lg">
+                  <span className="text-white font-mono text-sm">
                     {formatAddress(account.address.toString())}
                   </span>
                 </div>
-                <Button variant="outline" size="sm" onClick={handleWalletAction}>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleWalletAction}
+                  className="border-stone-600 text-stone-300 hover:text-white hover:border-white"
+                >
                   Disconnect
                 </Button>
-              </div>
+              </motion.div>
             ) : (
-              <GlowButton onClick={handleWalletAction} variant={selectedVariant.name}>
-              <button onClick={handleWalletAction} className="flex items-center m-1 text-sm font-medium text-white">
-                <User className="w-5 h-5 mr-2 inline-block" />
+              <GlowButton onClick={handleWalletAction}>
+              
                 Connect Wallet
-              </button>
               </GlowButton>
             )}
           </div>
         </div>
-      </nav>
+      </motion.nav>
 
       {/* Mobile Navigation */}
-      <nav className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200">
-        <div className="flex items-center justify-between px-4 py-3">
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-              <Zap className="w-4 h-4 text-white" />
+      <motion.nav 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="lg:hidden fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b border-stone-800/50"
+        style={{
+          background: 'rgba(0, 0, 0, 0.9)'
+        }}
+      >
+        <div className="flex items-center justify-between px-6 py-4">
+          {/* Mobile Logo */}
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-black" />
             </div>
-            <span className="text-xl font-bold">Aptash</span>
-          </Link>
-          
-          <div className="flex items-center space-x-2">
+            <span className="text-xl font-bold text-white">Aptash</span>
+          </div>
+
+          <div className="flex items-center space-x-3">
+            {/* Mobile Wallet Status */}
             {account && (
-              <div className="px-2 py-1 bg-green-50 border border-green-200 rounded text-xs text-green-800">
-                Connected
+              <div className="px-3 py-1 bg-stone-800/50 rounded-lg">
+                <span className="text-white font-mono text-xs">
+                  {formatAddress(account.address.toString())}
+                </span>
               </div>
             )}
+            
+            {/* Mobile Menu Button */}
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="text-white hover:text-white hover:bg-white/10"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </Button>
           </div>
         </div>
@@ -146,77 +180,79 @@ export default function Navigation() {
           {mobileMenuOpen && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
+              animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 overflow-hidden"
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="border-t border-stone-800/50"
+              style={{
+                background: 'rgba(0, 0, 0, 0.95)'
+              }}
             >
-              <div className="py-2">
-                {navigation.map((item, index) => {
-                  
-                  const isActive = pathname === item.href;
-                  
-                  return (
-                    <motion.div
-                      key={item.name}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <Link href={item.href}>
-                        <Button
-                          variant="ghost"
-                          className={cn(
-                            "w-full justify-start px-4 py-3 text-left h-auto",
-                            isActive && "bg-gray-100"
-                          )}
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          
-                          <div>
-                            <div className="font-medium">{item.name}</div>
-                            <div className="text-xs text-gray-500">{item.description}</div>
+              <div className="px-6 py-6 space-y-4">
+                {/* Mobile Navigation Links */}
+                <div className="space-y-2">
+                  {navigation.map((item, index) => {
+                    const isActive = pathname === item.href;
+                    return (
+                      <motion.div
+                        key={item.name}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <Link href={item.href} onClick={() => setMobileMenuOpen(false)}>
+                          <div className={cn(
+                            "flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300",
+                            isActive 
+                              ? "bg-white/10 text-white border border-white/20" 
+                              : "text-stone-400 hover:text-white hover:bg-white/5"
+                          )}>
+                            <item.icon className="w-5 h-5" />
+                            <div>
+                              <div className="font-medium">{item.name}</div>
+                              <div className="text-xs text-stone-500">{item.description}</div>
+                            </div>
                           </div>
-                        </Button>
-                      </Link>
-                    </motion.div>
-                  );
-                })}
-                
-                {/* Mobile Wallet Section */}
-                <div className="border-t border-gray-200 mt-2 pt-2 px-4">
+                        </Link>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+
+                {/* Mobile Wallet Connection */}
+                <div className="pt-4 border-t border-stone-800/50">
                   {account ? (
-                    <div className="space-y-2">
-                      <div className="text-sm text-gray-600">Connected:</div>
-                      <div className="text-xs font-mono bg-gray-100 p-2 rounded">
-                        {formatAddress(account.address.toString(), 12)}
+                    <div className="space-y-3">
+                      <div className="text-sm text-stone-400">Connected:</div>
+                      <div className="text-xs font-mono bg-stone-800/50 p-3 rounded-lg border border-stone-700/50">
+                        {formatAddress(account.address.toString())}
                       </div>
                       <Button 
                         variant="outline" 
                         size="sm" 
                         onClick={handleWalletAction}
-                        className="w-full"
+                        className="w-full border-stone-600 text-stone-300 hover:text-white hover:border-white"
                       >
                         Disconnect Wallet
                       </Button>
                     </div>
                   ) : (
-                    <Button 
-                      onClick={handleWalletAction} 
-                      className="w-full bg-black text-white"
-                    >
-                      Connect Wallet
-                    </Button>
+                    <div className="w-full justify-center">
+                      <GlowButton onClick={handleWalletAction}>
+                       
+                        Connect Wallet
+                      </GlowButton>
+                    </div>
                   )}
                 </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
-      </nav>
+      </motion.nav>
 
       {/* Spacer for fixed navigation */}
-      <div className="h-20"></div>
+      <div className="h-20" />
     </>
   );
 }

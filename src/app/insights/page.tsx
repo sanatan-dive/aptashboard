@@ -85,347 +85,348 @@ export default function Insights() {
     return () => clearInterval(interval);
   }, []);
 
-  const getNetworkStatusColor = (status: string) => {
-    switch (status) {
-      case 'optimal': return 'text-green-600 bg-green-50 border-green-200';
-      case 'congested': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      case 'high': return 'text-red-600 bg-red-50 border-red-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
-    }
-  };
-
-  const getRiskLevelColor = (level?: string) => {
-    switch (level) {
-      case 'low': return 'text-green-600 bg-green-50';
-      case 'medium': return 'text-yellow-600 bg-yellow-50';
-      case 'high': return 'text-red-600 bg-red-50';
-      default: return 'text-gray-600 bg-gray-50';
-    }
-  };
-
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center space-y-4"
-      >
-        <div className="flex items-center justify-center space-x-3">
-          <div className="w-12 h-12 bg-black rounded-2xl flex items-center justify-center">
-            <TrendingUp className="w-6 h-6 text-white" />
-          </div>
-          <h1 className="text-4xl font-bold text-black">AI Insights</h1>
-        </div>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-          Real-time market analytics and AI-powered predictions for smarter trading decisions
-        </p>
-      </motion.div>
-
-      {/* Controls */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="flex justify-between items-center"
-      >
-        <div className="text-sm text-gray-600">
-          Last updated: {lastUpdate.toLocaleTimeString()}
-        </div>
-        <Button
-          onClick={fetchInsights}
-          disabled={loading}
-          variant="outline"
-          size="sm"
-        >
-          {loading ? (
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          ) : (
-            <RefreshCw className="w-4 h-4 mr-2" />
-          )}
-          Refresh Data
-        </Button>
-      </motion.div>
-
-      {/* Market Overview */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-      >
-        <Card className="border-0 shadow-lg">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <DollarSign className="w-5 h-5" />
-              Network Fee
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-black">
-              {marketMetrics.networkFee.toFixed(6)} APT
-            </div>
-            <div className={cn(
-              "text-sm font-medium px-2 py-1 rounded-full inline-block mt-2 border",
-              getNetworkStatusColor(marketMetrics.networkStatus)
-            )}>
-              {marketMetrics.networkStatus.charAt(0).toUpperCase() + marketMetrics.networkStatus.slice(1)}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-lg">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Activity className="w-5 h-5" />
-              24h Volume
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-black">
-              {marketMetrics.transactionVolume.toLocaleString()}
-            </div>
-            <div className="text-sm text-gray-600 mt-2">
-              <TrendingUp className="w-4 h-4 inline mr-1 text-green-600" />
-              +12.3% from yesterday
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-lg">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Zap className="w-5 h-5" />
-              Avg. Speed
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-black">
-              {marketMetrics.averageTime}s
-            </div>
-            <div className="text-sm text-gray-600 mt-2">
-              Transaction confirmation
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-lg">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Shield className="w-5 h-5" />
-              Security Score
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">98.5%</div>
-            <div className="text-sm text-gray-600 mt-2">
-              Network security level
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* AI Predictions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Fee Prediction */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="w-5 h-5" />
-                Fee Optimization
-              </CardTitle>
-              <CardDescription>
-                AI-powered fee prediction for optimal transaction costs
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {feePrediction.optimalFee ? (
-                <>
-                  <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-                    <div className="text-3xl font-bold text-blue-600 mb-2">
-                      {feePrediction.optimalFee.toFixed(6)} APT
-                    </div>
-                    <div className="text-sm text-blue-700">Recommended Fee</div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Confidence Level</span>
-                      <span className="font-medium">
-                        {((feePrediction.confidence || 0) * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-600 h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${(feePrediction.confidence || 0) * 100}%` }}
-                      ></div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Recommendation</span>
-                      <span className={cn(
-                        "px-2 py-1 rounded-full text-xs font-medium",
-                        feePrediction.recommendation === 'optimal' 
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      )}>
-                        {feePrediction.recommendation || 'Unknown'}
-                      </span>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-8">
-                  <BarChart3 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-600">Click &quot;Refresh Data&quot; to get fee predictions</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Fraud Detection */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5" />
-                Security Analysis
-              </CardTitle>
-              <CardDescription>
-                Real-time fraud detection and risk assessment
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {fraudAnalysis.riskLevel ? (
-                <>
-                  <div className={cn(
-                    "flex items-center gap-3 p-4 rounded-xl border",
-                    fraudAnalysis.isSuspicious 
-                      ? "bg-red-50 border-red-200"
-                      : "bg-green-50 border-green-200"
-                  )}>
-                    {fraudAnalysis.isSuspicious ? (
-                      <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0" />
-                    ) : (
-                      <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0" />
-                    )}
-                    <div>
-                      <div className={cn(
-                        "font-medium",
-                        fraudAnalysis.isSuspicious ? "text-red-800" : "text-green-800"
-                      )}>
-                        {fraudAnalysis.isSuspicious ? 'Suspicious Activity Detected' : 'All Clear'}
-                      </div>
-                      <div className={cn(
-                        "text-sm",
-                        fraudAnalysis.isSuspicious ? "text-red-600" : "text-green-600"
-                      )}>
-                        {fraudAnalysis.isSuspicious 
-                          ? 'Transaction patterns indicate potential risk'
-                          : 'No suspicious patterns detected'
-                        }
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Risk Level</span>
-                      <span className={cn(
-                        "px-2 py-1 rounded-full text-xs font-medium",
-                        getRiskLevelColor(fraudAnalysis.riskLevel)
-                      )}>
-                        {fraudAnalysis.riskLevel?.toUpperCase() || 'UNKNOWN'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Confidence Score</span>
-                      <span className="font-medium">
-                        {((fraudAnalysis.confidence || 0) * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Anomaly Score</span>
-                      <span className="font-mono text-sm">
-                        {fraudAnalysis.anomalyScore?.toFixed(3) || 'N/A'}
-                      </span>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-8">
-                  <PieChart className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-600">Click &quot;Refresh Data&quot; to analyze security patterns</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* Market Trends Chart Placeholder */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-      >
-        <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5" />
-              Market Trends
-            </CardTitle>
-            <CardDescription>
-              Historical data and trend analysis for the Aptos network
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-64 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl flex items-center justify-center">
-              <div className="text-center space-y-2">
-                <TrendingUp className="w-12 h-12 text-gray-400 mx-auto" />
-                <p className="text-gray-600 font-medium">Market Trend Chart</p>
-                <p className="text-sm text-gray-500">Interactive chart component coming soon</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Connect Wallet CTA */}
-      {!account && (
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+      {/* Grid background */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px]" />
+      
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-12 space-y-8">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          className="text-center space-y-6"
         >
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50">
-            <CardContent className="text-center py-8">
-              <div className="space-y-4">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                  <Shield className="w-8 h-8 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900">Connect Your Wallet</h3>
-                <p className="text-gray-600 max-w-md mx-auto">
-                  Connect your wallet to get personalized insights and transaction analysis
-                </p>
-                <Button className="bg-black text-white hover:bg-gray-800">
-                  Connect Wallet for Personal Insights
-                </Button>
+          <div className="flex items-center justify-center space-x-4">
+            <div className="relative">
+              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center">
+                <TrendingUp className="w-8 h-8 text-black" />
+              </div>
+              <div className="absolute -inset-1 bg-gradient-to-r from-white/20 to-transparent rounded-2xl blur opacity-75"></div>
+            </div>
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-white via-gray-300 to-white bg-clip-text text-transparent">
+              AI Insights
+            </h1>
+          </div>
+          <p className="text-xl text-stone-400 max-w-3xl mx-auto leading-relaxed">
+            Real-time market analytics and AI-powered predictions for smarter trading decisions
+          </p>
+        </motion.div>
+
+        {/* Controls */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="flex justify-between items-center bg-stone-900/30 backdrop-blur border border-stone-800/50 rounded-xl p-4"
+        >
+          <div className="text-sm text-stone-400">
+            Last updated: <span className="text-white font-mono">{lastUpdate.toLocaleTimeString()}</span>
+          </div>
+          <Button
+            onClick={fetchInsights}
+            disabled={loading}
+            variant="outline"
+            size="sm"
+            className="border-stone-600 text-stone-300 hover:text-white hover:border-white"
+          >
+            {loading ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4 mr-2" />
+            )}
+            Refresh Data
+          </Button>
+        </motion.div>
+
+        {/* Market Overview */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+        >
+          <Card className="border border-stone-800/50 shadow-2xl bg-gradient-to-br from-stone-900/50 to-black/50 backdrop-blur">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-3 text-lg text-white">
+                <DollarSign className="w-5 h-5" />
+                Network Fee
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-white mb-3">
+                {marketMetrics.networkFee.toFixed(6)} APT
+              </div>
+              <div className={cn(
+                "text-sm font-medium px-3 py-1 rounded-full inline-block border",
+                marketMetrics.networkStatus === 'optimal' 
+                  ? "text-green-400 bg-green-500/20 border-green-500/30"
+                  : marketMetrics.networkStatus === 'congested'
+                  ? "text-yellow-400 bg-yellow-500/20 border-yellow-500/30"
+                  : "text-red-400 bg-red-500/20 border-red-500/30"
+              )}>
+                {marketMetrics.networkStatus.charAt(0).toUpperCase() + marketMetrics.networkStatus.slice(1)}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-stone-800/50 shadow-2xl bg-gradient-to-br from-stone-900/50 to-black/50 backdrop-blur">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-3 text-lg text-white">
+                <Activity className="w-5 h-5" />
+                24h Volume
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-white mb-3">
+                {marketMetrics.transactionVolume.toLocaleString()}
+              </div>
+              <div className="text-sm text-stone-400 flex items-center">
+                <TrendingUp className="w-4 h-4 mr-1 text-green-400" />
+                +12.3% from yesterday
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-stone-800/50 shadow-2xl bg-gradient-to-br from-stone-900/50 to-black/50 backdrop-blur">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-3 text-lg text-white">
+                <Zap className="w-5 h-5" />
+                Avg. Speed
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-white mb-3">
+                {marketMetrics.averageTime}s
+              </div>
+              <div className="text-sm text-stone-400">
+                Transaction confirmation
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-stone-800/50 shadow-2xl bg-gradient-to-br from-stone-900/50 to-black/50 backdrop-blur">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-3 text-lg text-white">
+                <Shield className="w-5 h-5" />
+                Security Score
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-green-400 mb-3">98.5%</div>
+              <div className="text-sm text-stone-400">
+                Network security level
               </div>
             </CardContent>
           </Card>
         </motion.div>
-      )}
+
+        {/* AI Predictions */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Fee Prediction */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Card className="border border-stone-800/50 shadow-2xl bg-gradient-to-br from-stone-900/50 to-black/50 backdrop-blur">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3 text-white">
+                  <Target className="w-5 h-5" />
+                  Fee Optimization
+                </CardTitle>
+                <CardDescription className="text-stone-400">
+                  AI-powered fee prediction for optimal transaction costs
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {feePrediction.optimalFee ? (
+                  <>
+                    <div className="text-center p-8 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-xl border border-blue-500/30">
+                      <div className="text-4xl font-bold text-blue-400 mb-3">
+                        {feePrediction.optimalFee.toFixed(6)} APT
+                      </div>
+                      <div className="text-sm text-blue-300">Recommended Fee</div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-stone-400">Confidence Level</span>
+                        <span className="font-medium text-white">
+                          {((feePrediction.confidence || 0) * 100).toFixed(1)}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-stone-800 rounded-full h-3">
+                        <div
+                          className="bg-gradient-to-r from-blue-500 to-indigo-500 h-3 rounded-full transition-all duration-500"
+                          style={{ width: `${(feePrediction.confidence || 0) * 100}%` }}
+                        ></div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-stone-400">Recommendation</span>
+                        <span className={cn(
+                          "px-3 py-1 rounded-full text-xs font-medium",
+                          feePrediction.recommendation === 'optimal' 
+                            ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                            : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+                        )}>
+                          {feePrediction.recommendation || 'Unknown'}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-12">
+                    <BarChart3 className="w-16 h-16 text-stone-600 mx-auto mb-6" />
+                    <p className="text-stone-400">Click &quot;Refresh Data&quot; to get fee predictions</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Fraud Detection */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <Card className="border border-stone-800/50 shadow-2xl bg-gradient-to-br from-stone-900/50 to-black/50 backdrop-blur">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3 text-white">
+                  <Shield className="w-5 h-5" />
+                  Security Analysis
+                </CardTitle>
+                <CardDescription className="text-stone-400">
+                  Real-time fraud detection and risk assessment
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {fraudAnalysis.riskLevel ? (
+                  <>
+                    <div className={cn(
+                      "flex items-center gap-4 p-6 rounded-xl border",
+                      fraudAnalysis.isSuspicious 
+                        ? "bg-red-500/20 border-red-500/30"
+                        : "bg-green-500/20 border-green-500/30"
+                    )}>
+                      {fraudAnalysis.isSuspicious ? (
+                        <AlertTriangle className="w-8 h-8 text-red-400 flex-shrink-0" />
+                      ) : (
+                        <CheckCircle className="w-8 h-8 text-green-400 flex-shrink-0" />
+                      )}
+                      <div>
+                        <div className={cn(
+                          "font-semibold text-lg",
+                          fraudAnalysis.isSuspicious ? "text-red-400" : "text-green-400"
+                        )}>
+                          {fraudAnalysis.isSuspicious ? 'Suspicious Activity Detected' : 'All Clear'}
+                        </div>
+                        <div className={cn(
+                          "text-sm",
+                          fraudAnalysis.isSuspicious ? "text-red-300" : "text-green-300"
+                        )}>
+                          {fraudAnalysis.isSuspicious 
+                            ? 'Transaction patterns indicate potential risk'
+                            : 'No suspicious patterns detected'
+                          }
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-stone-400">Risk Level</span>
+                        <span className={cn(
+                          "px-3 py-1 rounded-full text-xs font-medium",
+                          fraudAnalysis.riskLevel === 'low' 
+                            ? "bg-green-500/20 text-green-400"
+                            : fraudAnalysis.riskLevel === 'medium'
+                            ? "bg-yellow-500/20 text-yellow-400"
+                            : "bg-red-500/20 text-red-400"
+                        )}>
+                          {fraudAnalysis.riskLevel?.toUpperCase() || 'UNKNOWN'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-stone-400">Confidence Score</span>
+                        <span className="font-medium text-white">
+                          {((fraudAnalysis.confidence || 0) * 100).toFixed(1)}%
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-stone-400">Anomaly Score</span>
+                        <span className="font-mono text-sm text-white">
+                          {fraudAnalysis.anomalyScore?.toFixed(3) || 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-12">
+                    <PieChart className="w-16 h-16 text-stone-600 mx-auto mb-6" />
+                    <p className="text-stone-400">Click &quot;Refresh Data&quot; to analyze security patterns</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Market Trends Chart Placeholder */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <Card className="border border-stone-800/50 shadow-2xl bg-gradient-to-br from-stone-900/50 to-black/50 backdrop-blur">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3 text-white">
+                <BarChart3 className="w-5 h-5" />
+                Market Trends
+              </CardTitle>
+              <CardDescription className="text-stone-400">
+                Historical data and trend analysis for the Aptos network
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-64 bg-gradient-to-br from-stone-800/30 to-stone-900/30 rounded-xl flex items-center justify-center border border-stone-700/50">
+                <div className="text-center space-y-4">
+                  <TrendingUp className="w-16 h-16 text-stone-600 mx-auto" />
+                  <p className="text-stone-300 font-medium text-lg">Market Trend Chart</p>
+                  <p className="text-sm text-stone-500">Interactive chart component coming soon</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Connect Wallet CTA */}
+        {!account && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+          >
+            <Card className="border border-stone-800/50 shadow-2xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 backdrop-blur">
+              <CardContent className="text-center py-12">
+                <div className="space-y-6">
+                  <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto">
+                    <Shield className="w-10 h-10 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-semibold text-white">Connect Your Wallet</h3>
+                  <p className="text-stone-400 max-w-md mx-auto leading-relaxed">
+                    Connect your wallet to get personalized insights and transaction analysis
+                  </p>
+                  <Button className="bg-white text-black hover:bg-gray-200 font-medium px-8 py-3">
+                    Connect Wallet for Personal Insights
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 }

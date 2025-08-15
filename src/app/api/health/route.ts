@@ -216,7 +216,7 @@ export async function GET(req: NextRequest) {
 }
 
 // Simple liveness probe
-export async function HEAD(_req: NextRequest) {
+export async function HEAD() {
   const requestId = generateRequestId();
   
   try {

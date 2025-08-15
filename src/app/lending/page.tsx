@@ -290,10 +290,10 @@ export default function Lending() {
       <div className="container mx-auto p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
+            <Card key={i} className="animate-pulse border border-stone-800/50 bg-stone-900/50">
               <CardContent className="p-6">
-                <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                <div className="h-8 bg-gray-200 rounded"></div>
+                <div className="h-4 bg-stone-700/50 rounded mb-2"></div>
+                <div className="h-8 bg-stone-700/50 rounded"></div>
               </CardContent>
             </Card>
           ))}
@@ -303,103 +303,120 @@ export default function Lending() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold">P2P Lending</h1>
-            <p className="text-gray-600 mt-2">Decentralized peer-to-peer lending protocol</p>
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+      {/* Grid background */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px]" />
+      
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-12 space-y-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <div className="flex items-center space-x-4 mb-4">
+                <div className="relative">
+                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center">
+                    <DollarSign className="w-8 h-8 text-black" />
+                  </div>
+                  <div className="absolute -inset-1 bg-gradient-to-r from-white/20 to-transparent rounded-2xl blur opacity-75"></div>
+                </div>
+                <h1 className="text-5xl font-bold bg-gradient-to-r from-white via-gray-300 to-white bg-clip-text text-transparent">
+                  P2P Lending
+                </h1>
+              </div>
+              <p className="text-xl text-stone-400 leading-relaxed">Decentralized peer-to-peer lending protocol</p>
+            </div>
+            <div className="flex space-x-3">
+              <Button
+                onClick={() => {
+                  setCreateType('offer');
+                  setShowCreateModal(true);
+                }}
+                className="flex items-center bg-white text-black hover:bg-gray-200 font-medium"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Offer
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setCreateType('request');
+                  setShowCreateModal(true);
+                }}
+                className="flex items-center border-stone-600 text-stone-300 hover:text-white hover:border-white"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Request Loan
+              </Button>
+            </div>
           </div>
-          <div className="flex space-x-2">
-            <Button
-              onClick={() => {
-                setCreateType('offer');
-                setShowCreateModal(true);
-              }}
-              className="flex items-center"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Create Offer
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setCreateType('request');
-                setShowCreateModal(true);
-              }}
-              className="flex items-center"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Request Loan
-            </Button>
-          </div>
-        </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => (
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+            {stats.map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <Card className="border border-stone-800/50 shadow-2xl bg-gradient-to-br from-stone-900/50 to-black/50 backdrop-blur">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-stone-400">{stat.label}</p>
+                        <p className="text-3xl font-bold text-white mt-1">{stat.value}</p>
+                      </div>
+                      <div className="p-3 bg-white/10 rounded-full">
+                        <stat.icon className="h-6 w-6 text-white" />
+                      </div>
+                    </div>
+                    <div className="flex items-center mt-4">
+                      <Badge variant="secondary" className="text-xs bg-green-500/20 text-green-400 border border-green-500/30">
+                        {stat.change}
+                      </Badge>
+                      <span className="text-xs text-stone-500 ml-2">vs last month</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Status Message */}
+          {statusMessage && (
             <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className={`p-4 rounded-lg mb-6 backdrop-blur border ${
+                statusMessage.includes('Failed') || statusMessage.includes('connect') 
+                  ? 'bg-red-500/20 text-red-400 border-red-500/30' 
+                  : 'bg-green-500/20 text-green-400 border-green-500/30'
+              }`}
             >
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                      <p className="text-2xl font-bold">{stat.value}</p>
-                    </div>
-                    <div className="p-3 bg-black/5 rounded-full">
-                      <stat.icon className="h-6 w-6" />
-                    </div>
-                  </div>
-                  <div className="flex items-center mt-4">
-                    <Badge variant="secondary" className="text-xs">
-                      {stat.change}
-                    </Badge>
-                    <span className="text-xs text-gray-500 ml-2">vs last month</span>
-                  </div>
-                </CardContent>
-              </Card>
+              {statusMessage}
             </motion.div>
-          ))}
-        </div>
+          )}
 
-        {/* Status Message */}
-        {statusMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`p-4 rounded-lg mb-6 ${
-              statusMessage.includes('Failed') || statusMessage.includes('connect') 
-                ? 'bg-red-50 text-red-700 border border-red-200' 
-                : 'bg-green-50 text-green-700 border border-green-200'
-            }`}
-          >
-            {statusMessage}
-          </motion.div>
-        )}
-
-        {/* Main Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="offers">Loan Offers</TabsTrigger>
-            <TabsTrigger value="requests">Loan Requests</TabsTrigger>
-            <TabsTrigger value="myloans">My Loans</TabsTrigger>
-          </TabsList>
+          {/* Main Content */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 bg-stone-900/50 border border-stone-800/50">
+              <TabsTrigger value="offers" className="data-[state=active]:bg-white data-[state=active]:text-black">Loan Offers</TabsTrigger>
+              <TabsTrigger value="requests" className="data-[state=active]:bg-white data-[state=active]:text-black">Loan Requests</TabsTrigger>
+              <TabsTrigger value="myloans" className="data-[state=active]:bg-white data-[state=active]:text-black">My Loans</TabsTrigger>
+            </TabsList>
 
           <TabsContent value="offers" className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Available Loan Offers</h2>
+              <h2 className="text-xl font-semibold text-white">Available Loan Offers</h2>
               <div className="flex items-center space-x-2">
-                <Search className="h-4 w-4 text-gray-400" />
-                <Input placeholder="Search offers..." className="w-64" />
+                <Search className="h-4 w-4 text-stone-400" />
+                <Input 
+                  placeholder="Search offers..." 
+                  className="w-64 bg-stone-900/50 border-stone-800/50 text-white placeholder:text-stone-500"
+                />
               </div>
             </div>
             <div className="grid gap-6">
@@ -410,16 +427,16 @@ export default function Lending() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  <Card className="hover:shadow-lg transition-shadow">
+                  <Card className="border border-stone-800/50 shadow-2xl bg-gradient-to-br from-stone-900/50 to-black/50 backdrop-blur hover:border-stone-700/50 transition-all duration-300">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
-                          <div className="p-3 bg-green-100 rounded-full">
-                            <DollarSign className="h-6 w-6 text-green-600" />
+                          <div className="p-3 bg-green-500/20 rounded-full border border-green-500/30">
+                            <DollarSign className="h-6 w-6 text-green-400" />
                           </div>
                           <div>
-                            <h3 className="font-semibold">{formatAmount(offer.amount)} {offer.token}</h3>
-                            <p className="text-sm text-gray-600">
+                            <h3 className="font-semibold text-white">{formatAmount(offer.amount)} {offer.token}</h3>
+                            <p className="text-sm text-stone-400">
                               by {formatAddress(offer.lender)}
                             </p>
                           </div>
@@ -427,22 +444,27 @@ export default function Lending() {
                         
                         <div className="flex items-center space-x-6">
                           <div className="text-center">
-                            <p className="text-sm text-gray-600">APY</p>
-                            <p className="font-bold text-green-600">{offer.interestRate}%</p>
+                            <p className="text-sm text-stone-500">APY</p>
+                            <p className="font-bold text-green-400">{offer.interestRate}%</p>
                           </div>
                           <div className="text-center">
-                            <p className="text-sm text-gray-600">Duration</p>
-                            <p className="font-semibold">{offer.duration} days</p>
+                            <p className="text-sm text-stone-500">Duration</p>
+                            <p className="font-semibold text-white">{offer.duration} days</p>
                           </div>
                           <div className="text-center">
-                            <p className="text-sm text-gray-600">Collateral</p>
-                            <p className="font-semibold">{offer.collateralRatio}%</p>
+                            <p className="text-sm text-stone-500">Collateral</p>
+                            <p className="font-semibold text-white">{offer.collateralRatio}%</p>
                           </div>
                           <div className="text-center">
-                            <p className="text-sm text-gray-600">Status</p>
+                            <p className="text-sm text-stone-500">Status</p>
                             <Badge 
                               variant={offer.status === 'active' ? 'default' : 
                                      offer.status === 'funded' ? 'secondary' : 'outline'}
+                              className={`${
+                                offer.status === 'active' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                                offer.status === 'funded' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                                'bg-stone-500/20 text-stone-400 border-stone-500/30'
+                              }`}
                             >
                               {offer.status}
                             </Badge>
@@ -452,6 +474,7 @@ export default function Lending() {
                             size="sm"
                             onClick={() => handleAcceptOffer(offer.id)}
                             disabled={!account || offer.status !== 'active'}
+                            className="bg-white text-black hover:bg-gray-200 disabled:bg-stone-600 disabled:text-stone-400"
                           >
                             {offer.status === 'active' ? 'Accept' : 'Funded'}
                           </Button>
@@ -466,10 +489,13 @@ export default function Lending() {
 
           <TabsContent value="requests" className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Loan Requests</h2>
+              <h2 className="text-xl font-semibold text-white">Loan Requests</h2>
               <div className="flex items-center space-x-2">
-                <Search className="h-4 w-4 text-gray-400" />
-                <Input placeholder="Search requests..." className="w-64" />
+                <Search className="h-4 w-4 text-stone-400" />
+                <Input 
+                  placeholder="Search requests..." 
+                  className="w-64 bg-stone-900/50 border-stone-800/50 text-white placeholder:text-stone-500"
+                />
               </div>
             </div>
             <div className="grid gap-6">
@@ -480,40 +506,45 @@ export default function Lending() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  <Card className="hover:shadow-lg transition-shadow">
+                  <Card className="border border-stone-800/50 shadow-2xl bg-gradient-to-br from-stone-900/50 to-black/50 backdrop-blur hover:border-stone-700/50 transition-all duration-300">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
-                          <div className="p-3 bg-blue-100 rounded-full">
-                            <TrendingUp className="h-6 w-6 text-blue-600" />
+                          <div className="p-3 bg-blue-500/20 rounded-full border border-blue-500/30">
+                            <TrendingUp className="h-6 w-6 text-blue-400" />
                           </div>
                           <div>
-                            <h3 className="font-semibold">{formatAmount(request.amount)} {request.token} Needed</h3>
-                            <p className="text-sm text-gray-600">
+                            <h3 className="font-semibold text-white">{formatAmount(request.amount)} {request.token} Needed</h3>
+                            <p className="text-sm text-stone-400">
                               by {formatAddress(request.borrower)}
                             </p>
-                            <p className="text-sm text-gray-500">{request.purpose}</p>
+                            <p className="text-sm text-stone-500">{request.purpose}</p>
                           </div>
                         </div>
                         
                         <div className="flex items-center space-x-6">
                           <div className="text-center">
-                            <p className="text-sm text-gray-600">Max APY</p>
-                            <p className="font-bold text-blue-600">{request.maxInterestRate}%</p>
+                            <p className="text-sm text-stone-500">Max APY</p>
+                            <p className="font-bold text-blue-400">{request.maxInterestRate}%</p>
                           </div>
                           <div className="text-center">
-                            <p className="text-sm text-gray-600">Duration</p>
-                            <p className="font-semibold">{request.duration} days</p>
+                            <p className="text-sm text-stone-500">Duration</p>
+                            <p className="font-semibold text-white">{request.duration} days</p>
                           </div>
                           <div className="text-center">
-                            <p className="text-sm text-gray-600">Collateral</p>
-                            <p className="font-semibold">{formatAmount(request.collateralAmount)}</p>
+                            <p className="text-sm text-stone-500">Collateral</p>
+                            <p className="font-semibold text-white">{formatAmount(request.collateralAmount)}</p>
                           </div>
                           <div className="text-center">
-                            <p className="text-sm text-gray-600">Status</p>
+                            <p className="text-sm text-stone-500">Status</p>
                             <Badge 
                               variant={request.status === 'active' ? 'default' : 
                                      request.status === 'funded' ? 'secondary' : 'outline'}
+                              className={`${
+                                request.status === 'active' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                                request.status === 'funded' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                                'bg-stone-500/20 text-stone-400 border-stone-500/30'
+                              }`}
                             >
                               {request.status}
                             </Badge>
@@ -522,6 +553,7 @@ export default function Lending() {
                           <Button
                             size="sm"
                             disabled={!account || request.status !== 'active'}
+                            className="bg-white text-black hover:bg-gray-200 disabled:bg-stone-600 disabled:text-stone-400"
                           >
                             {request.status === 'active' ? 'Fund' : 'Funded'}
                           </Button>
@@ -535,49 +567,53 @@ export default function Lending() {
           </TabsContent>
 
           <TabsContent value="myloans">
-            <Card>
+            <Card className="border border-stone-800/50 shadow-2xl bg-gradient-to-br from-stone-900/50 to-black/50 backdrop-blur">
               <CardHeader>
-                <CardTitle>My Loans</CardTitle>
-                <CardDescription>Your active lending and borrowing positions</CardDescription>
+                <CardTitle className="text-white">My Loans</CardTitle>
+                <CardDescription className="text-stone-400">Your active lending and borrowing positions</CardDescription>
               </CardHeader>
               <CardContent>
                 {!account ? (
-                  <p className="text-center text-gray-500 py-8">
+                  <p className="text-center text-stone-500 py-8">
                     Connect your wallet to view your loans
                   </p>
                 ) : myLoans.length === 0 ? (
-                  <p className="text-center text-gray-500 py-8">
+                  <p className="text-center text-stone-500 py-8">
                     No active loans. Start by creating an offer or accepting a request!
                   </p>
                 ) : (
                   <div className="space-y-4">
                     {myLoans.map(loan => (
-                      <div key={loan.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div key={loan.id} className="flex items-center justify-between p-4 border border-stone-700/50 rounded-lg bg-stone-900/30">
                         <div className="flex items-center space-x-4">
                           <div className={`p-2 rounded-full ${
-                            loan.type === 'lent' ? 'bg-green-100' : 'bg-blue-100'
+                            loan.type === 'lent' ? 'bg-green-500/20 border border-green-500/30' : 'bg-blue-500/20 border border-blue-500/30'
                           }`}>
                             {loan.type === 'lent' ? 
-                              <TrendingUp className="h-4 w-4 text-green-600" /> :
-                              <Clock className="h-4 w-4 text-blue-600" />
+                              <TrendingUp className="h-4 w-4 text-green-400" /> :
+                              <Clock className="h-4 w-4 text-blue-400" />
                             }
                           </div>
                           <div>
-                            <p className="font-medium">
+                            <p className="font-medium text-white">
                               {loan.type === 'lent' ? 'Lent' : 'Borrowed'} {formatAmount(loan.amount)} {loan.token}
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-stone-400">
                               {loan.type === 'lent' ? 'to' : 'from'} {formatAddress(loan.counterparty)}
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-semibold">{loan.interestRate}% APY</p>
-                          <p className="text-sm text-gray-600">{loan.daysRemaining} days remaining</p>
+                          <p className="font-semibold text-white">{loan.interestRate}% APY</p>
+                          <p className="text-sm text-stone-400">{loan.daysRemaining} days remaining</p>
                           <Badge 
                             variant={loan.status === 'active' ? 'default' : 
                                    loan.status === 'completed' ? 'secondary' : 'destructive'}
-                            className="text-xs mt-1"
+                            className={`text-xs mt-1 ${
+                              loan.status === 'active' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                              loan.status === 'completed' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                              'bg-red-500/20 text-red-400 border-red-500/30'
+                            }`}
                           >
                             {loan.status}
                           </Badge>
@@ -596,32 +632,33 @@ export default function Lending() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50"
             onClick={() => setShowCreateModal(false)}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="bg-white p-6 rounded-lg w-full max-w-md"
+              className="bg-gradient-to-br from-stone-900 to-black border border-stone-800/50 p-6 rounded-2xl w-full max-w-md backdrop-blur"
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-xl font-bold mb-4">
+              <h2 className="text-xl font-bold mb-4 text-white">
                 Create Loan {createType === 'offer' ? 'Offer' : 'Request'}
               </h2>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Amount</label>
+                  <label className="block text-sm font-medium mb-1 text-stone-300">Amount</label>
                   <Input
                     type="number"
                     placeholder="1000"
                     value={formData.amount}
                     onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+                    className="bg-stone-900/50 border-stone-800/50 text-white placeholder:text-stone-500"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-1">
+                  <label className="block text-sm font-medium mb-1 text-stone-300">
                     {createType === 'offer' ? 'Interest Rate (APY)' : 'Max Interest Rate (APY)'}
                   </label>
                   <Input
@@ -629,21 +666,23 @@ export default function Lending() {
                     placeholder="8.5"
                     value={formData.interestRate}
                     onChange={(e) => setFormData(prev => ({ ...prev, interestRate: e.target.value }))}
+                    className="bg-stone-900/50 border-stone-800/50 text-white placeholder:text-stone-500"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-1">Duration (days)</label>
+                  <label className="block text-sm font-medium mb-1 text-stone-300">Duration (days)</label>
                   <Input
                     type="number"
                     placeholder="30"
                     value={formData.duration}
                     onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
+                    className="bg-stone-900/50 border-stone-800/50 text-white placeholder:text-stone-500"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-1">
+                  <label className="block text-sm font-medium mb-1 text-stone-300">
                     {createType === 'offer' ? 'Collateral Ratio (%)' : 'Collateral Amount'}
                   </label>
                   <Input
@@ -651,16 +690,18 @@ export default function Lending() {
                     placeholder={createType === 'offer' ? '150' : '1500'}
                     value={formData.collateralRatio}
                     onChange={(e) => setFormData(prev => ({ ...prev, collateralRatio: e.target.value }))}
+                    className="bg-stone-900/50 border-stone-800/50 text-white placeholder:text-stone-500"
                   />
                 </div>
                 
                 {createType === 'request' && (
                   <div>
-                    <label className="block text-sm font-medium mb-1">Purpose</label>
+                    <label className="block text-sm font-medium mb-1 text-stone-300">Purpose</label>
                     <Input
                       placeholder="Business expansion, personal loan, etc."
                       value={formData.purpose}
                       onChange={(e) => setFormData(prev => ({ ...prev, purpose: e.target.value }))}
+                      className="bg-stone-900/50 border-stone-800/50 text-white placeholder:text-stone-500"
                     />
                   </div>
                 )}
@@ -668,7 +709,7 @@ export default function Lending() {
                 <div className="flex space-x-2 pt-4">
                   <Button
                     onClick={handleCreateLoan}
-                    className="flex-1"
+                    className="flex-1 bg-white text-black hover:bg-gray-200"
                     disabled={!formData.amount || !formData.interestRate || !formData.duration}
                   >
                     Create {createType === 'offer' ? 'Offer' : 'Request'}
@@ -676,6 +717,7 @@ export default function Lending() {
                   <Button
                     variant="outline"
                     onClick={() => setShowCreateModal(false)}
+                    className="border-stone-600 text-stone-300 hover:text-white hover:border-white"
                   >
                     Cancel
                   </Button>
@@ -684,7 +726,8 @@ export default function Lending() {
             </motion.div>
           </motion.div>
         )}
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 }

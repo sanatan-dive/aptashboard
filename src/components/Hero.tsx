@@ -1,18 +1,17 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
-/* eslint-disable react/jsx-no-comment-textnodes */
 
 import React, { useState } from "react";
 import GlowButton from "./ui/glow-button";
 
 function Hero() {
-  const [selectedChain, setSelectedChain] = useState(null);
+  const [selectedChain, setSelectedChain] = useState<string | null>(null);
 
-  const handleChainClick = (chain) => {
+  const handleChainClick = (chain: string) => {
     setSelectedChain(chain);
   };
 
-  const getChainClasses = (chain) => (
+  const getChainClasses = (chain: string) => (
     selectedChain === chain
       ? "bg-white text-black py-10 px-20 rounded-xl text-2xl flex items-center gap-4 shadow-2xl scale-110 transform transition-transform hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(0,0,0,0.5)]"
       : "bg-gradient-to-r from-stone-500/30 to-stone-900/30 backdrop-blur-md py-10 px-20 rounded-xl text-2xl flex items-center gap-4 shadow-2xl opacity-80 transform transition-transform hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(0,0,0,0.5)]"
@@ -63,7 +62,9 @@ function Hero() {
       
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center text-center pt-32 px-6">
-        <GlowButton className="mb-8">Trusted Platform</GlowButton>
+        <div className="mb-8">
+          <GlowButton>Trusted Platform</GlowButton>
+        </div>
         
         <h1 className="text-4xl md:text-6xl font-medium leading-snug">
           Revolutionize Your Transactions
@@ -83,11 +84,13 @@ function Hero() {
         </button>
         
         <div className="mt-40 flex flex-col items-center gap-4">
-          <GlowButton className="rounded-full">
-            <h1 className="bg-gradient-to-r bg-clip-text text-transparent text-lg from-stone-400 via-stone-100 to-stone-400">
-              Our Partners
-            </h1>
-          </GlowButton>
+          <div className="rounded-full">
+            <GlowButton>
+              <h1 className="bg-gradient-to-r bg-clip-text text-transparent text-lg from-stone-400 via-stone-100 to-stone-400">
+                Our Partners
+              </h1>
+            </GlowButton>
+          </div>
           <h1 className="text-2xl md:text-4xl font-medium text-center">
             Leading the Way in Crypto Trust with Aptash
           </h1>

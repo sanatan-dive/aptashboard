@@ -1,85 +1,59 @@
-import { type ClassValue, clsx } from "clsx"
+import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatAddress(address: string | undefined | null, length = 6): string {
-  if (!address || typeof address !== 'string') return ''
-  return `${address.slice(0, length)}...${address.slice(-4)}`
+// Format address to show first 6 and last 4 characters
+export function formatAddress(address: string): string {
+  if (!address) return ''
+  if (address.length <= 10) return address
+  return `${address.slice(0, 6)}...${address.slice(-4)}`
 }
 
-export function formatAmount(amount: number | string, decimals = 4): string {
+// Format amount with proper decimal places and units
+export function formatAmount(amount: number | string, decimals: number = 2): string {
   const num = typeof amount === 'string' ? parseFloat(amount) : amount
-  if (isNaN(num)) return '0';
+  if (isNaN(num)) return '0'
   
   if (num >= 1000000) {
-    return `${(num / 1000000).toFixed(2)}M`;
+    return `${(num / 1000000).toFixed(decimals)}M`
   } else if (num >= 1000) {
-    return `${(num / 1000).toFixed(2)}K`;
-  } else if (num < 0.01 && num > 0) {
-    return num.toExponential(3);
-  } else {
-    return num.toLocaleString('en-US', { 
-      minimumFractionDigits: 0,
-      maximumFractionDigits: decimals 
-    })
+    return `${(num / 1000).toFixed(decimals)}K`
+  }
+  
+  return num.toFixed(decimals)
+}
+
+// Format numbers with commas and appropriate units
+export function formatNumber(num: number): string {
+  if (num >= 1000000) {
+    return `${(num / 1000000).toFixed(1)}M`
+  } else if (num >= 1000) {
+    return `${(num / 1000).toFixed(1)}K`
+  }
+  return num.toLocaleString()
+}
+
+// Copy text to clipboard
+export async function copyToClipboard(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch (err) {
+    console.error('Failed to copy text: ', err)
+    return false
   }
 }
 
-export function formatTimestamp(timestamp: string): string {
-  return new Date(timestamp).toLocaleString('en-US', {
+// Format timestamp to readable date
+export function formatTimestamp(timestamp: number): string {
+  return new Date(timestamp).toLocaleDateString('en-US', {
+    year: 'numeric',
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit'
   })
-}
-
-export function validateAddress(address: string): boolean {
-  if (!address) return false;
-  // Aptos addresses are 32 bytes (64 hex chars) optionally prefixed with 0x
-  const cleanAddress = address.startsWith('0x') ? address.slice(2) : address;
-  return /^[a-fA-F0-9]{1,64}$/.test(cleanAddress);
-}
-
-export function copyToClipboard(text: string): void {
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(text);
-  } else {
-    // Fallback for older browsers
-    const textArea = document.createElement('textarea');
-    textArea.value = text;
-    document.body.appendChild(textArea);
-    textArea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textArea);
-  }
-}
-
-export function debounce<T extends (...args: never[]) => unknown>(
-  func: T,
-  wait: number
-): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout;
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  };
-}
-
-export function formatNumber(num: number): string {
-  if (num >= 1000000000) {
-    return `$${(num / 1000000000).toFixed(1)}B`;
-  } else if (num >= 1000000) {
-    return `$${(num / 1000000).toFixed(1)}M`;
-  } else if (num >= 1000) {
-    return `$${(num / 1000).toFixed(1)}K`;
-  } else {
-    return `$${num.toLocaleString('en-US', { 
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2 
-    })}`;
-  }
 }

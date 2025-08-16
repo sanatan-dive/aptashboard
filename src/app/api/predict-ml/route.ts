@@ -41,10 +41,8 @@ function callPythonMLService(type: string, data: unknown[]): Promise<PredictionR
     // Path to Python ML CLI script
     const scriptPath = path.join(process.cwd(), 'ml_cli.py');
     
-    // Use the Python executable from the virtual environment
-    const pythonPath = process.env.NODE_ENV === 'production' 
-      ? 'python3' 
-      : '/home/sana/Documents/Actual Projects/aptos/env/bin/python';
+    // Use Python executable from virtual environment or system Python
+    const pythonPath = process.env.PYTHON_PATH || '/home/sana/Documents/Actual Projects/aptos/aptash/venv/bin/python';
     
     // Spawn Python process
     const python = spawn(pythonPath, [scriptPath], {
@@ -87,8 +85,8 @@ function callPythonMLService(type: string, data: unknown[]): Promise<PredictionR
       }
     });
     
-    // Send input data
-    const input = JSON.stringify({ type, data }) + '\n';
+    // Send input data in the format our ML CLI expects
+    const input = type + '\n' + JSON.stringify(data) + '\n';
     python.stdin.write(input);
     python.stdin.end();
     

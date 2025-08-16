@@ -25,6 +25,8 @@ import { cn } from '@/lib/utils';
 interface PredictionData {
   // Fee prediction response
   fee?: number;
+  prediction?: number;
+  predicted_fee?: number;
   confidence?: number;
   model?: string;
   status?: string;
@@ -33,10 +35,15 @@ interface PredictionData {
     token_type?: string;
     network_load?: number;
     priority?: string;
+    base_fee?: number;
+    amount_factor?: number;
+    network_factor?: number;
+    priority_multiplier?: number;
   };
   // Fraud detection response  
   risk_score?: number;
   is_fraud?: boolean;
+  is_suspicious?: boolean;
   is_high_risk?: boolean;
   risk_factors?: string[];
   analysis?: {
@@ -97,22 +104,29 @@ export default function Insights() {
   const fetchInsights = async () => {
     setLoading(true);
     try {
-      // Sample data for demonstration
-      const networkLoad = 0.5;
-      const amount = 1200;
-      const priority = 0.7;
+      // Sample data for demonstration - using normal values for lower risk
+      const networkLoad = 0.3;  // Lower network load
+      const amount = 500;       // Smaller, more typical amount
+      const priority = 0.5;     // Normal priority
 
       // Fetch fee prediction
-      const feeResponse = await axios.post('/api/predict', {
+      const feeResponse = await axios.post('/api/predict-ml', {
         type: 'fee',
         data: [networkLoad, amount, priority]
       });
       setFeePrediction(feeResponse.data);
 
-      // Fetch fraud analysis with proper format (3 numbers for fraud detection)
-      const fraudResponse = await axios.post('/api/predict', {
+      // Fetch fraud analysis with proper format (6 parameters for fraud detection)
+      const fraudResponse = await axios.post('/api/predict-ml', {
         type: 'fraud', 
-        data: [networkLoad, amount, priority] // Using numeric values for fraud detection
+        data: [
+          "0xa1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef00",  // sender
+          "0x9876543210fedcba0987654321fedcba0987654321fedcba0987654321fedcba",  // recipient  
+          amount,      // amount
+          1672531200,  // timestamp (Jan 1, 2023 - older timestamp for lower risk)
+          networkLoad, // network_load
+          priority     // priority
+        ]
       });
       setFraudAnalysis(fraudResponse.data);
 
@@ -121,14 +135,14 @@ export default function Insights() {
       console.error('Error fetching insights:', error);
       // Set fallback data if API fails
       setFeePrediction({ 
-        fee: 0.001,
+        predicted_fee: 0.001,
         confidence: 0.5,
         model: 'fallback',
         status: 'error'
       });
       setFraudAnalysis({
         risk_score: 0.1,
-        is_fraud: false,
+        is_suspicious: false,
         confidence: 0.5,
         model: 'fallback'
       });
@@ -299,11 +313,11 @@ export default function Insights() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {feePrediction.fee ? (
+                {(feePrediction.fee || feePrediction.prediction || feePrediction.predicted_fee) ? (
                   <>
                     <div className="text-center p-8 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-xl border border-blue-500/30">
                       <div className="text-4xl font-bold text-blue-400 mb-3">
-                        {feePrediction.fee.toFixed(6)} APT
+                        {(feePrediction.fee || feePrediction.prediction || feePrediction.predicted_fee || 0).toFixed(6)} APT
                       </div>
                       <div className="text-sm text-blue-300">Recommended Fee</div>
                     </div>
@@ -393,11 +407,11 @@ export default function Insights() {
                   <>
                     <div className={cn(
                       "flex items-center gap-4 p-6 rounded-xl border",
-                      fraudAnalysis.is_fraud 
+                      (fraudAnalysis.is_fraud || fraudAnalysis.is_suspicious)
                         ? "bg-red-500/20 border-red-500/30"
                         : "bg-green-500/20 border-green-500/30"
                     )}>
-                      {fraudAnalysis.is_fraud ? (
+                      {(fraudAnalysis.is_fraud || fraudAnalysis.is_suspicious) ? (
                         <AlertTriangleIcon className="w-8 h-8 text-red-400 flex-shrink-0" />
                       ) : (
                         <CheckCircleIcon className="w-8 h-8 text-green-400 flex-shrink-0" />
@@ -405,15 +419,15 @@ export default function Insights() {
                       <div>
                         <div className={cn(
                           "font-semibold text-lg",
-                          fraudAnalysis.is_fraud ? "text-red-400" : "text-green-400"
+                          (fraudAnalysis.is_fraud || fraudAnalysis.is_suspicious) ? "text-red-400" : "text-green-400"
                         )}>
-                          {fraudAnalysis.is_fraud ? 'Suspicious Activity Detected' : 'All Clear'}
+                          {(fraudAnalysis.is_fraud || fraudAnalysis.is_suspicious) ? 'Suspicious Activity Detected' : 'All Clear'}
                         </div>
                         <div className={cn(
                           "text-sm",
-                          fraudAnalysis.is_fraud ? "text-red-300" : "text-green-300"
+                          (fraudAnalysis.is_fraud || fraudAnalysis.is_suspicious) ? "text-red-300" : "text-green-300"
                         )}>
-                          {fraudAnalysis.is_fraud 
+                          {(fraudAnalysis.is_fraud || fraudAnalysis.is_suspicious)
                             ? 'Transaction patterns indicate potential risk'
                             : 'No suspicious patterns detected'
                           }

@@ -21,10 +21,22 @@ interface Transaction {
   status: string;
 }
 
+
 interface PortfolioItem {
   name: string;
+  amount: number;
   value: number;
   change: number;
+}
+
+interface FraudEvent {
+  id: string;
+  sender: string;
+  amount: string;
+  timestamp: number;
+  formatted_amount: string;
+  date: string;
+  risk_level: 'high' | 'medium' | 'low';
 }
 
 interface WalletData {
@@ -44,6 +56,8 @@ export default function ProfilePage() {
   const [copyStatus, setCopyStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fraudLogs, setFraudLogs] = useState<FraudEvent[]>([]);
+  const [fraudLogsLoading, setFraudLogsLoading] = useState(false);
   const [walletData, setWalletData] = useState<WalletData>({
     balance: '0',
     transactionCount: 0,
@@ -76,8 +90,8 @@ export default function ProfilePage() {
           balance: balance.toString(),
           totalValue: balance.toString(),
           portfolio: [
-            { name: 'APT', value: balance, change: 2.5 },
-            { name: 'Staking Rewards', value: parseFloat(prev.stakingRewards), change: 5.1 }
+            { name: 'APT', amount: balance, value: balance, change: 2.5 },
+            { name: 'Staking Rewards', amount: parseFloat(prev.stakingRewards), value: parseFloat(prev.stakingRewards), change: 5.1 }
           ]
         }));
       } else {
@@ -113,9 +127,32 @@ export default function ProfilePage() {
     }
   }, [connected, account?.address]);
 
+  const fetchFraudLogs = useCallback(async () => {
+    if (!connected || !account?.address) return;
+
+    setFraudLogsLoading(true);
+    try {
+      const response = await fetch(`/api/fraud-logs?address=${account.address.toString()}&limit=20`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setFraudLogs(data.fraud_events || []);
+      } else {
+        console.error('Fraud logs API error:', response.status);
+        setFraudLogs([]);
+      }
+    } catch (err) {
+      console.error('Error fetching fraud logs:', err);
+      setFraudLogs([]);
+    } finally {
+      setFraudLogsLoading(false);
+    }
+  }, [connected, account?.address]);
+
   useEffect(() => {
     fetchWalletData();
-  }, [fetchWalletData]);
+    fetchFraudLogs();
+  }, [fetchWalletData, fetchFraudLogs]);
   
   const handleCopyAddress = () => {
     if (account?.address) {
@@ -442,6 +479,85 @@ export default function ProfilePage() {
                       </div>
                     ))}
                   </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Fraud Logs */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <Card className="border border-stone-800/50 shadow-2xl bg-gradient-to-br from-stone-900/50 to-black/50 backdrop-blur">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-semibold text-white">Security Events</h3>
+                    <Badge variant="outline" className="border-red-500/50 text-red-400">
+                      {fraudLogs.length} events
+                    </Badge>
+                  </div>
+                  
+                  {fraudLogsLoading ? (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto"></div>
+                      <p className="text-stone-400 mt-2">Loading security events...</p>
+                    </div>
+                  ) : fraudLogs.length === 0 ? (
+                    <div className="text-center py-8">
+                      <div className="text-green-400 text-4xl mb-2">🛡️</div>
+                      <p className="text-stone-400">No security events found</p>
+                      <p className="text-stone-500 text-sm mt-1">Your account has a clean security record</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {fraudLogs.slice(0, 5).map((event) => (
+                        <div 
+                          key={event.id} 
+                          className="flex items-center justify-between p-3 border border-stone-700/50 rounded-lg bg-stone-800/30"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className={cn(
+                              "w-3 h-3 rounded-full",
+                              event.risk_level === 'high' ? 'bg-red-500' :
+                              event.risk_level === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+                            )}></div>
+                            <div>
+                              <p className="font-medium text-white text-sm">
+                                Suspicious Transaction
+                              </p>
+                              <p className="text-xs text-stone-400">
+                                {event.formatted_amount} APT • {new Date(event.date).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          <Badge 
+                            variant="outline" 
+                            className={cn(
+                              "text-xs",
+                              event.risk_level === 'high' ? 'border-red-500/50 text-red-400' :
+                              event.risk_level === 'medium' ? 'border-yellow-500/50 text-yellow-400' :
+                              'border-green-500/50 text-green-400'
+                            )}
+                          >
+                            {event.risk_level.toUpperCase()}
+                          </Badge>
+                        </div>
+                      ))}
+                      
+                      {fraudLogs.length > 5 && (
+                        <div className="text-center pt-3">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="border-stone-600 text-stone-300 hover:text-white hover:border-white"
+                          >
+                            View All {fraudLogs.length} Events
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>

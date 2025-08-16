@@ -12,7 +12,6 @@ import {
   UserCircle,
   Menu,
   X,
-  Zap,
   Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';

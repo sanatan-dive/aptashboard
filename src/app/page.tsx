@@ -10,7 +10,6 @@ import {
   Shield, 
   Loader2,
   Zap,
-  Sparkles,
   ArrowUpDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';

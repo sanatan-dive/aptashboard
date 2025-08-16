@@ -32,6 +32,41 @@ ENV NODE_ENV production
 # Uncomment the following line in case you want to disable telemetry during runtime.
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# Essential environment variables with defaults
+ENV APTOS_NODE_URL=https://fullnode.testnet.aptoslabs.com/v1
+ENV NEXT_PUBLIC_NETWORK=testnet
+ENV NEXT_PUBLIC_APTOS_NODE_URL=https://fullnode.mainnet.aptoslabs.com/v1
+ENV NEXT_PUBLIC_APP_VERSION=1.0.0
+
+# Rate limiting configuration
+ENV RATE_LIMIT_REQUESTS_PER_MINUTE=60
+ENV RATE_LIMIT_WINDOW_MS=60000
+
+# Transfer/Transaction configuration
+ENV MAX_TRANSFER_AMOUNT=1000000
+ENV MIN_TRANSFER_AMOUNT=0.000001
+ENV TRANSACTION_TIMEOUT=30000
+
+# Lending configuration
+ENV LENDING_MODULE_ADDRESS=0x1
+ENV MAX_LOAN_AMOUNT=100000
+ENV MIN_LOAN_AMOUNT=1
+ENV MAX_INTEREST_RATE=50
+ENV MIN_INTEREST_RATE=0.1
+
+# Token addresses (with fallback defaults)
+ENV USDC_TOKEN_ADDRESS=0xf22bede237a07e121b56d91a491eb7bcdfd1f5907926a9e58338f964a01b17fa::asset::USDC
+ENV USDT_TOKEN_ADDRESS=0xf22bede237a07e121b56d91a491eb7bcdfd1f5907926a9e58338f964a01b17fa::asset::USDT
+
+# Security and validation
+ENV ENABLE_BALANCE_VALIDATION=false
+
+# Python configuration
+ENV PYTHON_EXECUTABLE=python3
+
+# API configuration
+ENV API_VERSION=v1
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 

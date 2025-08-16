@@ -1,26 +1,10 @@
 {
   "functions": {
     "api/predict.py": {
-      "runtime": "python3.9",
-      "maxDuration": 10
+      "runtime": "@vercel/python@4.2.0"
     },
     "api/fraud-detection.py": {
-      "runtime": "python3.9",
-      "maxDuration": 10
+      "runtime": "@vercel/python@4.2.0"
     }
-  },
-  "routes": [
-    {
-      "src": "/api/predict",
-      "dest": "/api/predict.py"
-    },
-    {
-      "src": "/api/fraud-detection",
-      "dest": "/api/fraud-detection.py"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
-  ]
+  }
 }

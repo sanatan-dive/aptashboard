@@ -53,7 +53,8 @@ async function callVercelPythonFunction(type: string, data: number[]): Promise<u
   const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
   
   try {
-    const response = await fetch(`${baseUrl}/api/predict.py`, {
+    // First try the new ML API
+    const response = await fetch(`${baseUrl}/api/predict-ml`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -64,11 +65,27 @@ async function callVercelPythonFunction(type: string, data: number[]): Promise<u
       }),
     });
 
-    if (!response.ok) {
-      throw new Error(`Python function failed with status ${response.status}`);
+    if (response.ok) {
+      return await response.json();
     }
 
-    return await response.json();
+    // If that fails, try the old Python function endpoint (for production)
+    const fallbackResponse = await fetch(`${baseUrl}/api/predict.py`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type,
+        data
+      }),
+    });
+
+    if (!fallbackResponse.ok) {
+      throw new Error(`Python function failed with status ${fallbackResponse.status}`);
+    }
+
+    return await fallbackResponse.json();
   } catch (error) {
     console.error('Python function call failed:', error);
     // Fallback calculation

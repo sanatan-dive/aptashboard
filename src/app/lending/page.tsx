@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
 import { motion } from 'framer-motion';
 import {
@@ -78,11 +78,7 @@ export default function Lending() {
     purpose: ''
   });
 
-  useEffect(() => {
-    loadLendingData();
-  }, []);
-
-  const loadLendingData = async () => {
+  const loadLendingData = useCallback(async () => {
     setLoading(true);
     try {
       // Simulate loading data - replace with real API calls
@@ -183,7 +179,11 @@ export default function Lending() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [account]);
+
+  useEffect(() => {
+    loadLendingData();
+  }, [loadLendingData]);
 
   const handleCreateLoan = async () => {
     if (!account) {

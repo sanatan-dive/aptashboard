@@ -33,6 +33,22 @@ interface CacheEntry {
   timestamp: number;
 }
 
+interface FraudCheckResult {
+  risk_score: number;
+  is_fraud: boolean;
+  is_high_risk: boolean;
+  confidence: number;
+  model: string;
+  status: string;
+  risk_factors: string[];
+  analysis: {
+    amount: number;
+    sender_length: number;
+    recipient_length: number;
+    timestamp: number;
+  };
+}
+
 function validateAddress(address: string): boolean {
   // Check cache first
   const cached = addressValidationCache.get(address);
@@ -53,6 +69,82 @@ function validateAddress(address: string): boolean {
 
 function sanitizeAmount(amount: number): number {
   return Math.floor(amount * 1_000_000) / 1_000_000; // Ensure 6 decimal precision
+}
+
+async function predictTransactionFee(
+  amount: number,
+  networkLoad: number = 0.5
+): Promise<{ fee: number; confidence: number; model: string } | null> {
+  try {
+    const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+    
+    const response = await fetch(`${baseUrl}/api/predict-ml`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type: 'fee',
+        data: [networkLoad, amount, 0.7] // network_load, amount, priority
+      }),
+    });
+
+    if (!response.ok) {
+      logger.warn('Fee prediction service unavailable', { status: response.status });
+      return null;
+    }
+
+    const result = await response.json();
+    
+    return {
+      fee: result.fee,
+      confidence: result.confidence,
+      model: result.model
+    };
+  } catch (error) {
+    logger.warn('Fee prediction failed', { error: error instanceof Error ? error.message : String(error) });
+    return null;
+  }
+}
+
+async function checkTransactionFraud(
+  senderAddress: string,
+  recipientAddress: string,
+  amount: number
+): Promise<FraudCheckResult | null> {
+  try {
+    const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+    
+    const response = await fetch(`${baseUrl}/api/predict-ml`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type: 'fraud',
+        data: [senderAddress, recipientAddress, amount, Math.floor(Date.now() / 1000)]
+      }),
+    });
+
+    if (!response.ok) {
+      logger.warn('Fraud detection service unavailable', { status: response.status });
+      return null;
+    }
+
+    const result = await response.json() as FraudCheckResult;
+    
+    logger.info('Fraud check completed', {
+      risk_score: result.risk_score,
+      is_fraud: result.is_fraud,
+      model: result.model,
+      risk_factors: result.risk_factors
+    });
+
+    return result;
+  } catch (error) {
+    logger.warn('Fraud detection failed', { error: error instanceof Error ? error.message : String(error) });
+    return null;
+  }
 }
 
 async function validateTokenBalance(
@@ -186,6 +278,57 @@ export async function POST(req: NextRequest) {
 
     const sanitizedAmount = sanitizeAmount(numAmount);
 
+    // Perform ML-based fraud detection
+    const fraudCheck = await checkTransactionFraud(
+      formattedSenderAddress,
+      recipientAddress as string,
+      sanitizedAmount
+    );
+
+    // Handle high-risk transactions
+    if (fraudCheck && fraudCheck.is_high_risk) {
+      logger.warn('High-risk transaction blocked', {
+        requestId,
+        sender: formattedSenderAddress.slice(0, 10) + '...',
+        recipient: (recipientAddress as string).slice(0, 10) + '...',
+        amount: sanitizedAmount,
+        risk_score: fraudCheck.risk_score,
+        risk_factors: fraudCheck.risk_factors
+      });
+
+      metrics.incrementCounter('transfers_blocked', { 
+        reason: 'high_risk_fraud',
+        risk_score: String(Math.floor(fraudCheck.risk_score * 10) / 10)
+      });
+
+      return NextResponse.json({
+        error: 'Transaction blocked due to security concerns',
+        risk_analysis: {
+          risk_score: fraudCheck.risk_score,
+          risk_factors: fraudCheck.risk_factors,
+          recommendation: 'Please verify transaction details and try again'
+        },
+        requestId
+      }, { status: 403 });
+    }
+
+    // Log fraud check results for suspicious but not blocked transactions
+    if (fraudCheck && fraudCheck.is_fraud) {
+      logger.warn('Suspicious transaction detected but allowing', {
+        requestId,
+        sender: formattedSenderAddress.slice(0, 10) + '...',
+        recipient: (recipientAddress as string).slice(0, 10) + '...',
+        amount: sanitizedAmount,
+        risk_score: fraudCheck.risk_score,
+        risk_factors: fraudCheck.risk_factors
+      });
+
+      metrics.incrementCounter('transfers_flagged', { 
+        reason: 'suspicious_activity',
+        risk_score: String(Math.floor(fraudCheck.risk_score * 10) / 10)
+      });
+    }
+
     // Check sender balance (optional, for better UX)
     if (process.env.ENABLE_BALANCE_VALIDATION === 'true') {
       const hasBalance = await validateTokenBalance(
@@ -209,6 +352,9 @@ export async function POST(req: NextRequest) {
 
     // If no signed transaction, return payload for client-side signing
     if (!signedTransaction) {
+      // Get predicted fee
+      const feeEstimate = await predictTransactionFee(sanitizedAmount);
+      
       const payload = await createTransferPayload(
         recipientAddress as string,
         sanitizedAmount,
@@ -225,9 +371,16 @@ export async function POST(req: NextRequest) {
         message: 'Sign this transaction with your wallet',
         requestId,
         metadata: {
-          estimatedFee: '0.001', // In production, calculate actual fee
+          estimatedFee: feeEstimate ? feeEstimate.fee.toString() : '0.001',
+          feeConfidence: feeEstimate ? feeEstimate.confidence : 0.5,
+          feeModel: feeEstimate ? feeEstimate.model : 'fallback',
           gasLimit: '1000'
-        }
+        },
+        security_analysis: fraudCheck ? {
+          risk_score: fraudCheck.risk_score,
+          status: fraudCheck.is_fraud ? 'flagged' : 'safe',
+          model: fraudCheck.model
+        } : { status: 'not_analyzed' }
       });
     }
 
@@ -261,7 +414,13 @@ export async function POST(req: NextRequest) {
           success: result.success,
           vmStatus: result.vm_status
         },
-        requestId
+        requestId,
+        security_analysis: fraudCheck ? {
+          risk_score: fraudCheck.risk_score,
+          status: fraudCheck.is_fraud ? 'flagged' : 'safe',
+          model: fraudCheck.model,
+          risk_factors: fraudCheck.risk_factors
+        } : { status: 'not_analyzed' }
       });
 
     } catch (submitError) {

@@ -147,6 +147,36 @@ class Validator {
 
     switch (rule.type) {
       case 'string':
+        // Special handling for address fields
+        if (rule.pattern && rule.pattern.source.includes('0x[a-fA-F0-9]{64}')) {
+          // This is an address field, handle different formats
+          let addressStr: string;
+          
+          if (typeof value === 'string') {
+            addressStr = value;
+          } else if (typeof value === 'object' && value !== null) {
+            if ('data' in value && Array.isArray((value as { data: number[] }).data)) {
+              const addressData = (value as { data: number[] }).data;
+              addressStr = '0x' + addressData.map((byte: number) => 
+                byte.toString(16).padStart(2, '0')
+              ).join('');
+            } else if ('address' in value && typeof (value as { address: string }).address === 'string') {
+              addressStr = (value as { address: string }).address;
+            } else if (Array.isArray(value)) {
+              addressStr = '0x' + value.map((byte: number) => 
+                byte.toString(16).padStart(2, '0')
+              ).join('');
+            } else {
+              addressStr = String(value);
+            }
+          } else {
+            addressStr = String(value);
+          }
+          
+          return addressStr.trim();
+        }
+        
+        // Regular string handling
         if (typeof value === 'string') {
           return value.trim();
         }
@@ -178,7 +208,40 @@ export const schemas = {
     type: 'string' as const,
     pattern: /^0x[a-fA-F0-9]{64}$/,
     minLength: 66,
-    maxLength: 66
+    maxLength: 66,
+    custom: (value: unknown) => {
+      // Handle different address formats from wallets
+      let addressStr: string;
+      
+      if (typeof value === 'string') {
+        addressStr = value;
+      } else if (typeof value === 'object' && value !== null) {
+        // Handle Uint8Array or object with address property
+        if ('data' in value && Array.isArray((value as { data: number[] }).data)) {
+          const addressData = (value as { data: number[] }).data;
+          addressStr = '0x' + addressData.map((byte: number) => 
+            byte.toString(16).padStart(2, '0')
+          ).join('');
+        } else if ('address' in value && typeof (value as { address: string }).address === 'string') {
+          addressStr = (value as { address: string }).address;
+        } else if (Array.isArray(value)) {
+          addressStr = '0x' + value.map((byte: number) => 
+            byte.toString(16).padStart(2, '0')
+          ).join('');
+        } else {
+          return 'Invalid address format';
+        }
+      } else {
+        return 'Address must be a string or valid address object';
+      }
+      
+      // Validate the final address string
+      if (!/^0x[a-fA-F0-9]{64}$/.test(addressStr)) {
+        return 'Address must be a valid 64-character hex string starting with 0x';
+      }
+      
+      return true;
+    }
   },
 
   amount: {

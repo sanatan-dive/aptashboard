@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  aptash:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      - APTOS_NODE_URL=${APTOS_NODE_URL:-https://fullnode.testnet.aptoslabs.com/v1}
+    volumes:
+      # Mount the models directory for ML functionality
+      - ./models:/app/models:ro
+    networks:
+      - aptash-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Redis for caching (uncomment if needed)
+  # redis:
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   networks:
+  #     - aptash-network
+  #   restart: unless-stopped
+  #   command: redis-server --appendonly yes
+
+networks:
+  aptash-network:
+    driver: bridge
+
+# volumes:
+#   redis_data:

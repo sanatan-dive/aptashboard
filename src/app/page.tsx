@@ -43,7 +43,7 @@ interface FeePrediction {
 }
 
 export default function Home() {
-  const { account, signAndSubmitTransaction } = useWallet();
+  const { account, signAndSubmitTransaction, connected } = useWallet();
   const [transferData, setTransferData] = useState<TransferData>({
     senderAddress: '',
     recipientAddress: '',
@@ -98,18 +98,118 @@ export default function Home() {
   };
 
   const handleTransfer = async () => {
-    if (!account || !transferData.recipientAddress || !transferData.amount) return;
+    if (!account || !transferData.recipientAddress || !transferData.amount) {
+      showNotification('error', 'Please fill in all fields and connect your wallet');
+      return;
+    }
+
+    if (!connected) {
+      showNotification('error', 'Wallet not connected. Please connect your wallet first.');
+      return;
+    }
 
     setIsLoading(true);
     try {
-      const response = await axios.post('/api/transfer', transferData);
+      // Ensure sender address is a string
+      const senderAddress = typeof account.address === 'string' 
+        ? account.address 
+        : account.address?.toString() || '';
+
+      console.log('Starting transfer:', {
+        sender: senderAddress,
+        recipient: transferData.recipientAddress,
+        amount: transferData.amount,
+        token: transferData.token
+      });
+
+      // Get the transaction payload from API
+      const response = await axios.post('/api/transfer', {
+        senderAddress: senderAddress,
+        recipientAddress: transferData.recipientAddress,
+        amount: transferData.amount,
+        token: transferData.token
+      });
+      
+      console.log('API Response:', response.data);
       
       if (response.data.payload) {
-        const result = await signAndSubmitTransaction(response.data.payload);
-        showNotification('success', `Transfer successful! Transaction: ${result.hash}`);
+        console.log('Got payload, signing transaction...');
+        
+        // Sign and submit transaction using wallet
+        try {
+          // Format the payload for the wallet adapter - needs to be wrapped in 'data'
+          const transactionData = {
+            data: {
+              function: response.data.payload.function,
+              functionArguments: response.data.payload.arguments,
+              typeArguments: response.data.payload.type_arguments,
+            }
+          };
+          
+          console.log('Transaction data to sign:', transactionData);
+          
+          // Use the correct wallet adapter format
+          const result = await signAndSubmitTransaction(transactionData);
+          
+          console.log('Transaction result:', result);
+          
+          // Verify transaction success - check for hash property
+          if (result && result.hash) {
+            console.log('Transaction successful with hash:', result.hash);
+            showNotification('success', `Transfer successful! Transaction: ${result.hash}`);
+            
+            // Clear form after successful transfer
+            setTransferData({
+              senderAddress: senderAddress,
+              recipientAddress: '',
+              amount: 1,
+              token: 'APT'
+            });
+            
+            console.log('Transfer completed:', {
+              hash: result.hash,
+              sender: senderAddress,
+              recipient: transferData.recipientAddress,
+              amount: transferData.amount
+            });
+          } else {
+            console.error('No transaction hash returned:', result);
+            throw new Error('Transaction failed - no hash returned');
+          }
+        } catch (walletError) {
+          console.error('Wallet transaction error details:', walletError);
+          
+          // More specific error handling
+          if (walletError instanceof Error) {
+            if (walletError.message.includes('User rejected') || walletError.message.includes('cancelled')) {
+              throw new Error('Transaction cancelled by user');
+            } else if (walletError.message.includes('Insufficient')) {
+              throw new Error('Insufficient balance for transaction');
+            } else if (walletError.message.includes('Network') || walletError.message.includes('network')) {
+              throw new Error('Network error - check wallet network settings');
+            } else if (walletError.message.includes('not connected')) {
+              throw new Error('Wallet not connected - please connect your wallet');
+            } else if (walletError.message.includes("'in' operator")) {
+              throw new Error('Wallet integration error - trying alternative method');
+            } else {
+              throw new Error(`Wallet error: ${walletError.message}`);
+            }
+          } else {
+            throw new Error('Unknown wallet error - check wallet connection and network');
+          }
+        }
+      } else {
+        console.error('No payload in response:', response.data);
+        throw new Error('Failed to get transaction payload from API');
       }
     } catch (error: unknown) {
-      showNotification('error', error instanceof Error ? error.message : 'Transfer failed');
+      console.error('Transfer error details:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('API Error response:', error.response?.data);
+        showNotification('error', `API Error: ${error.response?.data?.message || error.message}`);
+      } else {
+        showNotification('error', error instanceof Error ? error.message : 'Transfer failed');
+      }
     } finally {
       setIsLoading(false);
     }

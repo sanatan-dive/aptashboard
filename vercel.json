@@ -1,11 +1,4 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
   "functions": {
     "api/predict.py": {
       "runtime": "python3.9",
@@ -29,9 +22,5 @@
       "src": "/(.*)",
       "dest": "/$1"
     }
-  ],
-  "env": {
-    "PYTHON_EXECUTABLE": "python3"
-  },
-  "outputDirectory": ".next"
+  ]
 }

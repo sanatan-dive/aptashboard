@@ -2,13 +2,6 @@ import json
 import sys
 from http.server import BaseHTTPRequestHandler
 
-try:
-    import numpy as np
-    from sklearn.ensemble import IsolationForest
-    ML_AVAILABLE = True
-except ImportError:
-    ML_AVAILABLE = False
-
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
         # Set CORS headers
@@ -52,7 +45,7 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
     
     def analyze_transaction(self, sender, recipient, amount, timestamp):
-        """Analyze transaction for fraud indicators"""
+        """Analyze transaction for fraud indicators using rule-based system"""
         try:
             risk_score = 0.0
             risk_factors = []
@@ -95,13 +88,6 @@ class handler(BaseHTTPRequestHandler):
                 if time_risk > 0.1:
                     risk_factors.append('unusual_timing')
             
-            # ML-based analysis if available
-            if ML_AVAILABLE:
-                ml_risk = self._ml_fraud_detection(amount, len(sender), len(recipient))
-                risk_score += ml_risk * 0.3  # Weight ML component
-                if ml_risk > 0.7:
-                    risk_factors.append('ml_anomaly_detected')
-            
             # Clamp risk score
             risk_score = min(1.0, max(0.0, risk_score))
             
@@ -110,8 +96,8 @@ class handler(BaseHTTPRequestHandler):
                 'is_suspicious': risk_score > 0.6,
                 'is_high_risk': risk_score > 0.8,
                 'risk_factors': risk_factors,
-                'confidence': 0.85 if ML_AVAILABLE else 0.7,
-                'model': 'hybrid_detection' if ML_AVAILABLE else 'rule_based',
+                'confidence': 0.8,
+                'model': 'rule_based_analysis',
                 'status': 'success',
                 'analysis': {
                     'amount': amount,
@@ -173,37 +159,6 @@ class handler(BaseHTTPRequestHandler):
         except:
             return 0.0
     
-    def _ml_fraud_detection(self, amount, sender_len, recipient_len):
-        """ML-based fraud detection"""
-        try:
-            if not ML_AVAILABLE:
-                return 0.0
-            
-            # Create feature vector
-            features = np.array([
-                amount / 10000.0,  # Normalized amount
-                sender_len / 100.0,  # Normalized sender length
-                recipient_len / 100.0,  # Normalized recipient length
-            ]).reshape(1, -1)
-            
-            # Simple anomaly detection
-            # In a real implementation, you'd load a pre-trained model
-            np.random.seed(42)
-            normal_data = np.random.normal(0, 1, (100, 3))
-            
-            iso_forest = IsolationForest(contamination=0.1, random_state=42)
-            iso_forest.fit(normal_data)
-            
-            anomaly_score = iso_forest.decision_function(features)[0]
-            
-            # Convert to risk score (0-1)
-            risk_score = max(0, min(1, (1 - anomaly_score) / 2))
-            
-            return risk_score
-            
-        except Exception:
-            return 0.0
-    
     def do_GET(self):
         # Health check endpoint
         self.send_response(200)
@@ -214,7 +169,6 @@ class handler(BaseHTTPRequestHandler):
         health_status = {
             'status': 'healthy',
             'service': 'aptash_fraud_detection',
-            'ml_available': ML_AVAILABLE,
             'python_version': sys.version
         }
         

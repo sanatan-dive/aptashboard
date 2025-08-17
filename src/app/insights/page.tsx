@@ -177,7 +177,7 @@ export default function Insights() {
               </div>
               <div className="absolute -inset-1 bg-gradient-to-r from-white/20 to-transparent rounded-2xl blur opacity-75"></div>
             </div>
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-white via-gray-300 to-white bg-clip-text text-transparent">
+            <h1 className="text-5xl satoshi-bold bg-gradient-to-r from-white via-gray-300 to-white bg-clip-text text-transparent">
               AI Insights
             </h1>
           </div>
@@ -194,7 +194,7 @@ export default function Insights() {
           className="flex justify-between items-center bg-stone-900/30 backdrop-blur border border-stone-800/50 rounded-xl p-4"
         >
           <div className="text-sm text-stone-400">
-            Last updated: <span className="text-white font-mono">{lastUpdate.toLocaleTimeString()}</span>
+            Last updated: <span className="text-white satoshi-regular">{lastUpdate.toLocaleTimeString()}</span>
           </div>
           <Button
             onClick={fetchInsights}
@@ -227,11 +227,11 @@ export default function Insights() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-white mb-3">
+              <div className="text-3xl satoshi-bold text-white mb-3">
                 {marketMetrics.networkFee.toFixed(6)} APT
               </div>
               <div className={cn(
-                "text-sm font-medium px-3 py-1 rounded-full inline-block border",
+                "text-sm satoshi-medium px-3 py-1 rounded-full inline-block border",
                 marketMetrics.networkStatus === 'optimal' 
                   ? "text-green-400 bg-green-500/20 border-green-500/30"
                   : marketMetrics.networkStatus === 'congested'
@@ -251,7 +251,7 @@ export default function Insights() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-white mb-3">
+              <div className="text-3xl satoshi-bold text-white mb-3">
                 {marketMetrics.transactionVolume.toLocaleString()}
               </div>
               <div className="text-sm text-stone-400 flex items-center">
@@ -269,7 +269,7 @@ export default function Insights() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-white mb-3">
+              <div className="text-3xl satoshi-bold text-white mb-3">
                 {marketMetrics.averageTime}s
               </div>
               <div className="text-sm text-stone-400">
@@ -286,7 +286,7 @@ export default function Insights() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-400 mb-3">98.5%</div>
+              <div className="text-3xl satoshi-bold text-green-400 mb-3">98.5%</div>
               <div className="text-sm text-stone-400">
                 Network security level
               </div>
@@ -316,7 +316,7 @@ export default function Insights() {
                 {(feePrediction.fee || feePrediction.prediction || feePrediction.predicted_fee) ? (
                   <>
                     <div className="text-center p-8 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-xl border border-blue-500/30">
-                      <div className="text-4xl font-bold text-blue-400 mb-3">
+                      <div className="text-4xl satoshi-bold text-blue-400 mb-3">
                         {(feePrediction.fee || feePrediction.prediction || feePrediction.predicted_fee || 0).toFixed(6)} APT
                       </div>
                       <div className="text-sm text-blue-300">Recommended Fee</div>
@@ -325,7 +325,7 @@ export default function Insights() {
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-stone-400">Confidence Level</span>
-                        <span className="font-medium text-white">
+                        <span className="satoshi-medium text-white">
                           {((feePrediction.confidence || 0) * 100).toFixed(1)}%
                         </span>
                       </div>

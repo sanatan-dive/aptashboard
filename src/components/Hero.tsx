@@ -66,32 +66,43 @@ function Hero() {
           <GlowButton>Trusted Platform</GlowButton>
         </div>
         
-        <h1 className="text-3xl sm:text-4xl md:text-6xl font-medium leading-tight md:leading-snug">
+        <h1 className="text-3xl sm:text-4xl md:text-6xl satoshi-medium leading-tight md:leading-snug">
           Revolutionize Your Transactions
         </h1>
-        <h1 className="text-3xl sm:text-4xl md:text-6xl font-medium">
+        <h1 className="text-3xl sm:text-4xl md:text-6xl satoshi-medium">
           With Secure Blockchain Solutions
         </h1>
         
-        <p className="text-base md:text-lg font-medium text-stone-400 max-w-3xl mt-6 md:mt-8 px-4">
+        <p className="text-base md:text-lg satoshi-medium text-stone-400 max-w-3xl mt-6 md:mt-8 px-4">
           Experience the future of finance with our AI-powered DeFi platform on
           the Aptos blockchain. Seamlessly connect your wallet and explore a
           world of decentralized finance.
         </p>
         
-        <button className="mt-6 md:mt-8 bg-white text-black text-base md:text-lg font-bold px-8 md:px-12 py-3 md:py-4 rounded-full hover:bg-gray-200 transition">
+        <button 
+          onClick={() => {
+            const transferSection = document.getElementById('transfer-section');
+            if (transferSection) {
+              transferSection.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+              });
+            }
+          }}
+          className="mt-6 md:mt-8 bg-white text-black text-base md:text-lg satoshi-bold px-8 md:px-12 py-3 md:py-4 rounded-full hover:bg-gray-200 transition-all duration-300 transform hover:scale-105"
+        >
           Get Started
         </button>
         
         <div className="mt-20 md:mt-40 flex flex-col items-center gap-4">
           <div className="rounded-full">
             <GlowButton>
-              <h1 className="bg-gradient-to-r bg-clip-text text-transparent text-base md:text-lg from-stone-400 via-stone-100 to-stone-400">
+              <h1 className="bg-gradient-to-r bg-clip-text text-transparent text-base md:text-lg satoshi-regular from-stone-400 via-stone-100 to-stone-400">
                 Our Partners
               </h1>
             </GlowButton>
           </div>
-          <h1 className="text-xl sm:text-2xl md:text-4xl font-medium text-center px-4">
+          <h1 className="text-xl sm:text-2xl md:text-4xl satoshi-medium text-center px-4">
             Leading the Way in Crypto Trust with Aptash
           </h1>
           

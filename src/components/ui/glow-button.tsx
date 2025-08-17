@@ -13,7 +13,7 @@ function GlowButton({
         >
             <div className="flex items-center gap-2 drop-shadow-lg  px-4 py-3 z-0 ">
 
-                <p>{children}</p>
+                <p className="satoshi-medium">{children}</p>
             </div>
 
         </button>

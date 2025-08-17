@@ -296,6 +296,7 @@ export default function Home() {
 
       {/* Transfer Section */}
       <motion.div
+        id="transfer-section"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
@@ -311,7 +312,7 @@ export default function Home() {
             </GlowButton>
           </motion.div>
           
-          <motion.h2 variants={itemVariants} className="text-4xl md:text-6xl font-medium mb-6">
+          <motion.h2 variants={itemVariants} className="text-4xl md:text-6xl satoshi-medium mb-6">
             Send APT with
             <span className="block bg-gradient-to-r from-white via-gray-300 to-white bg-clip-text text-transparent">
               AI-Powered Security
@@ -382,7 +383,7 @@ export default function Home() {
                         }`}>
                           <div className="flex items-center gap-2 mb-2">
                             <Shield className="w-4 h-4" />
-                            <span className="text-sm font-medium">Security Check</span>
+                            <span className="text-sm satoshi-medium">Security Check</span>
                           </div>
                           <div className="text-xs text-stone-300">
                             Risk Level: <span className="capitalize">{fraudPrediction.riskLevel}</span>
@@ -397,7 +398,7 @@ export default function Home() {
                         <div className="p-4 rounded-lg border bg-blue-500/20 border-blue-500/30 backdrop-blur-md">
                           <div className="flex items-center gap-2 mb-2">
                             <Zap className="w-4 h-4" />
-                            <span className="text-sm font-medium">Fee Optimization</span>
+                            <span className="text-sm satoshi-medium">Fee Optimization</span>
                           </div>
                           <div className="text-xs text-stone-300">
                             Optimal Fee: {feePrediction.optimalFee.toFixed(4)} APT
@@ -415,7 +416,7 @@ export default function Home() {
                 <Button
                   onClick={handleTransfer}
                   disabled={isLoading || !transferData.recipientAddress || !transferData.amount}
-                  className="w-full bg-white text-black hover:bg-gray-200 font-medium py-6 text-lg rounded-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  className="w-full bg-white text-black hover:bg-gray-200 satoshi-medium py-6 text-lg rounded-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
                   {isLoading ? (
                     <>
@@ -436,11 +437,11 @@ export default function Home() {
           <motion.div variants={itemVariants} className="text-center max-w-lg mx-auto">
             <div className="p-12 rounded-2xl bg-gradient-to-b from-stone-900/50 to-black/50 backdrop-blur-md border border-stone-700/50">
               <Wallet className="w-16 h-16 mx-auto mb-6 text-stone-400" />
-              <h3 className="text-2xl font-medium mb-4">Connect Your Wallet</h3>
+              <h3 className="text-2xl satoshi-medium mb-4">Connect Your Wallet</h3>
               <p className="text-stone-400 mb-8">
                 Connect your Aptos wallet to start making secure transfers with AI-powered protection
               </p>
-              <Button className="bg-white text-black hover:bg-gray-200 font-medium px-8 py-3 rounded-xl">
+              <Button className="bg-white text-black hover:bg-gray-200 satoshi-medium px-8 py-3 rounded-xl">
                 Connect Wallet
               </Button>
             </div>
@@ -457,7 +458,7 @@ export default function Home() {
         className="relative z-10 container mx-auto px-6 py-20"
       >
         <motion.div variants={itemVariants} className="text-center mb-16">
-          <h3 className="text-3xl md:text-5xl font-medium mb-6">
+          <h3 className="text-3xl md:text-5xl satoshi-medium mb-6">
             Why Choose Aptash?
           </h3>
           <p className="text-xl text-stone-400 max-w-2xl mx-auto">
@@ -490,7 +491,7 @@ export default function Home() {
               className="p-8 rounded-2xl bg-gradient-to-b from-stone-900/30 to-black/30 backdrop-blur-md border border-stone-700/30 hover:border-stone-500/50 transition-all duration-300"
             >
               <feature.icon className="w-12 h-12 mb-6 text-white" />
-              <h4 className="text-xl font-medium mb-4">{feature.title}</h4>
+              <h4 className="text-xl satoshi-medium mb-4">{feature.title}</h4>
               <p className="text-stone-400">{feature.description}</p>
             </motion.div>
           ))}

@@ -1,4 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
+import { realMLServices } from '@/lib/real-ml-services';
 
 // Rate limiting configuration
 const REQUEST_CACHE = new Map<string, { count: number; lastReset: number }>();
@@ -50,52 +51,58 @@ function validatePredictionData(data: unknown): { valid: boolean; error?: string
 }
 
 async function callVercelPythonFunction(type: string, data: number[]): Promise<unknown> {
-  const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
-  
   try {
-    // First try the new ML API
-    const response = await fetch(`${baseUrl}/api/predict-ml`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        type,
-        data
-      }),
-    });
-
-    if (response.ok) {
-      return await response.json();
+    // Use real ML services directly - no more fallbacks
+    console.log('Using real ML services for prediction');
+    
+    if (type === 'fee') {
+      const [amount = 100, networkLoad = 0.5, priority = 0.5] = data;
+      
+      // Map priority from 0-1 to low/normal/high
+      const priorityStr = priority > 0.7 ? 'high' : priority < 0.3 ? 'low' : 'normal';
+      
+      const result = await realMLServices.predictRealFee(amount, 'APT', priorityStr);
+      
+      return {
+        fee: result.predicted_fee,
+        confidence: result.confidence,
+        model: result.model,
+        status: result.status,
+        factors: result.factors,
+        data_sources: result.data_sources
+      };
+      
+    } else if (type === 'fraud') {
+      const [amount = 0, senderScore = 0.5, recipientScore = 0.5] = data;
+      
+      // Generate dummy addresses for API compatibility
+      const sender = `0x${'1'.repeat(64)}`;
+      const recipient = `0x${'2'.repeat(64)}`;
+      
+      const result = await realMLServices.detectRealFraud(
+        sender, 
+        recipient, 
+        amount, 
+        Date.now() / 1000
+      );
+      
+      return {
+        risk_score: result.risk_score,
+        is_suspicious: result.is_suspicious,
+        is_high_risk: result.is_high_risk,
+        confidence: result.confidence,
+        model: result.model,
+        status: result.status,
+        analysis: result.analysis,
+        data_sources: result.data_sources
+      };
     }
-
-    // If that fails, try the old Python function endpoint (for production)
-    const fallbackResponse = await fetch(`${baseUrl}/api/predict.py`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        type,
-        data
-      }),
-    });
-
-    if (!fallbackResponse.ok) {
-      throw new Error(`Python function failed with status ${fallbackResponse.status}`);
-    }
-
-    return await fallbackResponse.json();
+    
+    throw new Error(`Unsupported prediction type: ${type}`);
+    
   } catch (error) {
-    console.error('Python function call failed:', error);
-    // Fallback calculation
-    return {
-      fee: 0.001,
-      confidence: 0.5,
-      model: 'fallback',
-      status: 'fallback_used',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    };
+    console.error('Real ML service failed:', error);
+    throw new Error(`ML prediction failed: ${error}`);
   }
 }
 

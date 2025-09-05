@@ -84,16 +84,22 @@ export default function ProfilePage() {
       if (balanceResponse.ok) {
         const balanceData = await balanceResponse.json();
         const balance = balanceData.balance?.apt || 0;
+        const hasBalance = balanceData.hasBalance || false;
         
         setWalletData(prev => ({
           ...prev,
           balance: balance.toString(),
           totalValue: balance.toString(),
           portfolio: [
-            { name: 'APT', amount: balance, value: balance, change: 2.5 },
+            { name: 'APT (Testnet)', amount: balance, value: balance, change: 2.5 },
             { name: 'Staking Rewards', amount: parseFloat(prev.stakingRewards), value: parseFloat(prev.stakingRewards), change: 5.1 }
           ]
         }));
+        
+        // Show message if no balance
+        if (!hasBalance && balanceData.message) {
+          console.log('Testnet info:', balanceData.message);
+        }
       } else {
         console.error('Balance API error:', balanceResponse.status);
       }
@@ -316,8 +322,13 @@ export default function ProfilePage() {
                         <WalletIcon className="h-12 w-12 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-2xl font-semibold text-white">Wallet Overview</h3>
-                        <div className="flex items-center space-x-3 mt-2">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-2xl font-semibold text-white">Wallet Overview</h3>
+                          <Badge variant="outline" className="border-blue-500/50 text-blue-400 bg-blue-500/10 text-xs">
+                            TESTNET
+                          </Badge>
+                        </div>
+                        <div className="flex items-center space-x-3">
                           <p className="text-stone-300 font-mono text-lg">
                             {formatAddress(account.address.toString())}
                           </p>
@@ -332,7 +343,7 @@ export default function ProfilePage() {
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            onClick={() => window.open(`https://explorer.aptoslabs.com/account/${account.address.toString()}`, '_blank')}
+                            onClick={() => window.open(`https://explorer.aptoslabs.com/account/${account.address.toString()}?network=testnet`, '_blank')}
                             className="text-stone-400 hover:text-white"
                           >
                             <ExternalLinkIcon className="h-4 w-4" />
@@ -347,11 +358,28 @@ export default function ProfilePage() {
 
                   {/* Balance Display */}
                   <div className="text-center py-8 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl border border-blue-500/20 mb-8">
-                    <p className="text-stone-400 mb-2 text-lg">Total Balance</p>
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <p className="text-stone-400 text-lg">Testnet Balance</p>
+                      <Badge variant="outline" className="border-blue-500/50 text-blue-400 bg-blue-500/10 text-xs">
+                        TESTNET
+                      </Badge>
+                    </div>
                     <p className="text-5xl font-bold text-white mb-2">
                       {formatAmount(parseFloat(walletData.balance))} APT
                     </p>
-                    <p className="text-stone-400 text-lg">≈ ${(parseFloat(walletData.totalValue) * 8.45).toFixed(2)} USD</p>
+                    <div className="flex items-center justify-center gap-4">
+                      <p className="text-stone-400 text-lg">≈ ${(parseFloat(walletData.totalValue) * 8.45).toFixed(2)} USD</p>
+                      {parseFloat(walletData.balance) === 0 && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => window.open('https://aptoslabs.com/testnet-faucet', '_blank')}
+                          className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10 ml-2"
+                        >
+                          Get Testnet APT
+                        </Button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Stats Grid */}
@@ -456,7 +484,12 @@ export default function ProfilePage() {
             >
               <Card className="border border-stone-800/50 shadow-2xl bg-gradient-to-br from-stone-900/50 to-black/50 backdrop-blur">
                 <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold text-white mb-6">Portfolio Breakdown</h3>
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-semibold text-white">Portfolio Breakdown</h3>
+                    <Badge variant="outline" className="border-blue-500/50 text-blue-400 bg-blue-500/10 text-xs">
+                      TESTNET
+                    </Badge>
+                  </div>
                   <div className="space-y-6">
                     <div className="flex items-center justify-between p-4 bg-stone-800/30 rounded-xl">
                       <span className="text-stone-300 font-medium">Total Value</span>
@@ -558,6 +591,47 @@ export default function ProfilePage() {
                       )}
                     </div>
                   )}
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Testnet Info Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45 }}
+            >
+              <Card className="border border-blue-500/30 shadow-2xl bg-gradient-to-br from-blue-900/20 to-blue-800/20 backdrop-blur">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-semibold text-white">Testnet Resources</h3>
+                    <Badge variant="outline" className="border-blue-500/50 text-blue-400 bg-blue-500/10">
+                      TESTNET
+                    </Badge>
+                  </div>
+                  <p className="text-stone-300 mb-4 text-sm">
+                    You&apos;re connected to Aptos Testnet. Use these resources for development and testing.
+                  </p>
+                  <div className="space-y-3">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => window.open('https://aptoslabs.com/testnet-faucet', '_blank')}
+                      className="w-full justify-start border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
+                    >
+                      <WalletIcon className="h-4 w-4 mr-2" />
+                      Get Testnet APT
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => window.open(`https://explorer.aptoslabs.com/account/${account.address.toString()}?network=testnet`, '_blank')}
+                      className="w-full justify-start border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
+                    >
+                      <ExternalLinkIcon className="h-4 w-4 mr-2" />
+                      View on Explorer
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>

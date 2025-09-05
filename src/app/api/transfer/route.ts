@@ -73,8 +73,7 @@ function sanitizeAmount(amount: number): number {
 }
 
 async function predictTransactionFee(
-  amount: number,
-  networkLoad: number = 0.5
+  amount: number
 ): Promise<{ fee: number; confidence: number; model: string } | null> {
   try {
     const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
@@ -86,7 +85,7 @@ async function predictTransactionFee(
       },
       body: JSON.stringify({
         type: 'fee',
-        data: [networkLoad, amount, 0.7] // network_load, amount, priority
+        data: [amount, 'APT', 'high'] // amount, token, priority
       }),
     });
 
@@ -422,7 +421,7 @@ export async function POST(req: NextRequest) {
         metadata: {
           estimatedFee: feeEstimate ? feeEstimate.fee.toString() : '0.001',
           feeConfidence: feeEstimate ? feeEstimate.confidence : 0.5,
-          feeModel: feeEstimate ? feeEstimate.model : 'fallback',
+          feeModel: feeEstimate ? feeEstimate.model : 'unknown',
           gasLimit: '1000'
         },
         security_analysis: fraudCheck ? {

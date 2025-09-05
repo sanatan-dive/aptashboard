@@ -75,7 +75,7 @@ export default function Insights() {
   const { account } = useWallet();
   const [feePrediction, setFeePrediction] = useState<PredictionData>({});
   const [fraudAnalysis, setFraudAnalysis] = useState<PredictionData>({});
-  const [marketMetrics] = useState<MarketMetrics>({
+  const [marketMetrics, setMarketMetrics] = useState<MarketMetrics>({
     networkFee: 0.001,
     networkStatus: 'optimal',
     transactionVolume: 12450,
@@ -87,17 +87,9 @@ export default function Insights() {
       marketCap: 3200000000,
       timestamp: Date.now()
     },
-    priceHistory: [
-      { timestamp: Date.now() - 86400000 * 7, price: 7.8, volume: 98000000 },
-      { timestamp: Date.now() - 86400000 * 6, price: 8.1, volume: 105000000 },
-      { timestamp: Date.now() - 86400000 * 5, price: 7.9, volume: 89000000 },
-      { timestamp: Date.now() - 86400000 * 4, price: 8.3, volume: 112000000 },
-      { timestamp: Date.now() - 86400000 * 3, price: 8.0, volume: 95000000 },
-      { timestamp: Date.now() - 86400000 * 2, price: 8.2, volume: 118000000 },
-      { timestamp: Date.now() - 86400000 * 1, price: 8.4, volume: 122000000 },
-      { timestamp: Date.now(), price: 8.45, volume: 125000000 }
-    ]
+    priceHistory: []
   });
+  const [loadingMarketData, setLoadingMarketData] = useState(true);
   const [loading, setLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
@@ -105,27 +97,23 @@ export default function Insights() {
     setLoading(true);
     try {
       // Sample data for demonstration - using normal values for lower risk
-      const networkLoad = 0.3;  // Lower network load
       const amount = 500;       // Smaller, more typical amount
-      const priority = 0.5;     // Normal priority
 
-      // Fetch fee prediction
+      // Fetch fee prediction with correct format
       const feeResponse = await axios.post('/api/predict-ml', {
         type: 'fee',
-        data: [networkLoad, amount, priority]
+        data: [amount, 'APT', 'normal'] // [amount, token, priority]
       });
       setFeePrediction(feeResponse.data);
 
-      // Fetch fraud analysis with proper format (6 parameters for fraud detection)
+      // Fetch fraud analysis with proper format
       const fraudResponse = await axios.post('/api/predict-ml', {
         type: 'fraud', 
         data: [
           "0xa1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef00",  // sender
           "0x9876543210fedcba0987654321fedcba0987654321fedcba0987654321fedcba",  // recipient  
-          amount,      // amount
-          1672531200,  // timestamp (Jan 1, 2023 - older timestamp for lower risk)
-          networkLoad, // network_load
-          priority     // priority
+          amount,           // amount
+          Date.now() / 1000 // timestamp
         ]
       });
       setFraudAnalysis(fraudResponse.data);
@@ -151,11 +139,37 @@ export default function Insights() {
     }
   };
 
+  const fetchMarketData = async () => {
+    setLoadingMarketData(true);
+    try {
+      // Fetch real market metrics
+      const response = await axios.get('/api/market-trends?type=metrics');
+      
+      if (response.data.success) {
+        setMarketMetrics(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching market data:', error);
+      // Keep existing mock data on error
+    } finally {
+      setLoadingMarketData(false);
+    }
+  };
+
   useEffect(() => {
     fetchInsights();
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchInsights, 30000);
-    return () => clearInterval(interval);
+    fetchMarketData();
+    
+    // Auto-refresh every 30 seconds for insights
+    const insightsInterval = setInterval(fetchInsights, 30000);
+    
+    // Auto-refresh every 2 minutes for market data (less frequent)
+    const marketInterval = setInterval(fetchMarketData, 120000);
+    
+    return () => {
+      clearInterval(insightsInterval);
+      clearInterval(marketInterval);
+    };
   }, []);
 
   return (
@@ -197,13 +211,16 @@ export default function Insights() {
             Last updated: <span className="text-white satoshi-regular">{lastUpdate.toLocaleTimeString()}</span>
           </div>
           <Button
-            onClick={fetchInsights}
-            disabled={loading}
+            onClick={() => {
+              fetchInsights();
+              fetchMarketData();
+            }}
+            disabled={loading || loadingMarketData}
             variant="outline"
             size="sm"
             className="border-stone-600 text-stone-300 hover:text-white hover:border-white"
           >
-            {loading ? (
+            {(loading || loadingMarketData) ? (
               <SpinnerIcon className="w-4 h-4 mr-2 animate-spin" />
             ) : (
               <RefreshIcon className="w-4 h-4 mr-2" />
@@ -270,7 +287,7 @@ export default function Insights() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl satoshi-bold text-white mb-3">
-                {marketMetrics.averageTime}s
+                {marketMetrics.averageTime.toFixed(2)}s
               </div>
               <div className="text-sm text-stone-400">
                 Transaction confirmation
@@ -526,13 +543,26 @@ export default function Insights() {
               <CardTitle className="flex items-center gap-3 text-white">
                 <LineChartIcon className="w-5 h-5" />
                 Market Trends
+                <div className="flex items-center gap-2 text-sm text-stone-400 ml-auto">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  Real-time Data
+                </div>
               </CardTitle>
               <CardDescription className="text-stone-400">
-                Live APT price data and market analysis
+                Live APT price data and market analysis powered by CoinGecko
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* APT Price Overview */}
+              {loadingMarketData ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-center">
+                    <SpinnerIcon className="w-8 h-8 text-blue-400 mx-auto animate-spin mb-4" />
+                    <p className="text-stone-400">Loading real market data...</p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* APT Price Overview */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="p-4 bg-stone-800/50 rounded-lg">
                   <p className="text-sm text-stone-400 mb-1">Current Price</p>
@@ -643,6 +673,8 @@ export default function Insights() {
                   </div>
                 </div>
               </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </motion.div>

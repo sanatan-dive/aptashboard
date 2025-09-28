@@ -1,0 +1,10 @@
+[package]
+name = "aptash"
+version = "0.0.1"
+authors = ["Sanatan sharma"]
+
+[addresses]
+aptash = "0xf2085f85f86385adbe39f7cd9fafc3724a5c73483162a3cc6708ad2e28c1a977"  # Testnet account address
+
+[dependencies]
+AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework", rev = "aptos-node-v1.15.0" }

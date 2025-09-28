@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  aptash:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      # Core configuration
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      
+      # Aptos blockchain configuration
+      - APTOS_NODE_URL=${APTOS_NODE_URL:-https://fullnode.testnet.aptoslabs.com/v1}
+      - NEXT_PUBLIC_NETWORK=${NEXT_PUBLIC_NETWORK:-testnet}
+      - NEXT_PUBLIC_APTOS_NODE_URL=${NEXT_PUBLIC_APTOS_NODE_URL:-https://fullnode.mainnet.aptoslabs.com/v1}
+      
+      # Smart contract addresses
+      - LENDING_MODULE_ADDRESS=${LENDING_MODULE_ADDRESS:-0x1}
+      - FRAUD_LOG_MODULE_ADDRESS=${FRAUD_LOG_MODULE_ADDRESS:-0x1}
+      
+      # Rate limiting
+      - RATE_LIMIT_REQUESTS_PER_MINUTE=${RATE_LIMIT_REQUESTS_PER_MINUTE:-60}
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-60000}
+      
+      # Transaction limits
+      - MAX_TRANSFER_AMOUNT=${MAX_TRANSFER_AMOUNT:-1000000}
+      - MIN_TRANSFER_AMOUNT=${MIN_TRANSFER_AMOUNT:-0.000001}
+      - MAX_LOAN_AMOUNT=${MAX_LOAN_AMOUNT:-100000}
+      - MIN_LOAN_AMOUNT=${MIN_LOAN_AMOUNT:-1}
+      - MAX_INTEREST_RATE=${MAX_INTEREST_RATE:-50}
+      - MIN_INTEREST_RATE=${MIN_INTEREST_RATE:-0.1}
+      - TRANSACTION_TIMEOUT=${TRANSACTION_TIMEOUT:-30000}
+      
+      # Token configuration
+      - USDC_TOKEN_ADDRESS=${USDC_TOKEN_ADDRESS:-0xf22bede237a07e121b56d91a491eb7bcdfd1f5907926a9e58338f964a01b17fa::asset::USDC}
+      - USDT_TOKEN_ADDRESS=${USDT_TOKEN_ADDRESS:-0xf22bede237a07e121b56d91a491eb7bcdfd1f5907926a9e58338f964a01b17fa::asset::USDT}
+      
+      # Security settings
+      - ENABLE_BALANCE_VALIDATION=${ENABLE_BALANCE_VALIDATION:-false}
+      
+      # Python/ML configuration
+      - PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE:-python3}
+      
+      # API configuration
+      - API_VERSION=${API_VERSION:-v1}
+      - NEXT_PUBLIC_APP_VERSION=${NEXT_PUBLIC_APP_VERSION:-1.0.0}
+      
+      # Optional: Database (uncomment if using)
+      # - DATABASE_URL=${DATABASE_URL}
+      
+      # Optional: Deployment-specific (automatically set by platforms)
+      # - VERCEL_URL=${VERCEL_URL}
+    volumes:
+      # Mount the models directory for ML functionality
+      - ./models:/app/models:ro
+    networks:
+      - aptash-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Redis for caching (uncomment if needed)
+  # redis:
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   networks:
+  #     - aptash-network
+  #   restart: unless-stopped
+  #   command: redis-server --appendonly yes
+
+networks:
+  aptash-network:
+    driver: bridge
+
+# volumes:
+#   redis_data:

@@ -939,9 +939,9 @@ export default function Insights() {
                                 labelStyle={{ color: "#f9fafb" }}
                                 itemStyle={{ color: "#8b5cf6" }}
                                 formatter={(value: number) => [
-                                  `$${(parseFloat(value.toString()) / 1000000).toFixed(
-                                    2
-                                  )}M`,
+                                  `$${(
+                                    parseFloat(value.toString()) / 1000000
+                                  ).toFixed(2)}M`,
                                   "Volume",
                                 ]}
                                 labelFormatter={(label) => `Time: ${label}`}

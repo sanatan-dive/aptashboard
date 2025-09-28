@@ -1,0 +1,31 @@
+
+> aptash@0.1.0 build
+> next build
+
+   ▲ Next.js 15.4.5
+   - Environments: .env.local, .env
+   - Experiments (use with caution):
+     ✓ optimizeCss
+     · optimizePackageImports
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 3.0s
+   Linting and checking validity of types ...
+
+Failed to compile.
+
+./src/app/api/predict/route.ts
+59:28  Warning: 'networkLoad' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+76:26  Warning: 'senderScore' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+76:45  Warning: 'recipientScore' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/insights/page.tsx
+7:3  Warning: 'LineChart' is defined but never used.  @typescript-eslint/no-unused-vars
+8:3  Warning: 'Line' is defined but never used.  @typescript-eslint/no-unused-vars
+836:52  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+836:57  Warning: 'name' is defined but never used.  @typescript-eslint/no-unused-vars
+878:46  Warning: 'index' is defined but never used.  @typescript-eslint/no-unused-vars
+945:52  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+945:57  Warning: 'name' is defined but never used.  @typescript-eslint/no-unused-vars
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules

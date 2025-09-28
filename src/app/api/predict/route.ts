@@ -56,7 +56,7 @@ async function callVercelPythonFunction(type: string, data: number[]): Promise<u
     console.log('Using real ML services for prediction');
     
     if (type === 'fee') {
-      const [amount = 100, networkLoad = 0.5, priority = 0.5] = data;
+      const [amount = 100, , priority = 0.5] = data;
       
       // Map priority from 0-1 to low/normal/high
       const priorityStr = priority > 0.7 ? 'high' : priority < 0.3 ? 'low' : 'normal';
@@ -73,7 +73,7 @@ async function callVercelPythonFunction(type: string, data: number[]): Promise<u
       };
       
     } else if (type === 'fraud') {
-      const [amount = 0, senderScore = 0.5, recipientScore = 0.5] = data;
+      const [amount = 0] = data;
       
       // Generate dummy addresses for API compatibility
       const sender = `0x${'1'.repeat(64)}`;
